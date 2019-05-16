@@ -1,3 +1,4 @@
+pub mod old_client;
 pub mod client;
 pub(crate) mod net;
 pub(crate) mod utils;
@@ -13,6 +14,6 @@ pub struct GeneralConfig {
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub general: GeneralConfig,
-    pub centerdevice: client::CenterDeviceConfig,
+    pub centerdevice: old_client::CenterDeviceConfig,
 }
 
