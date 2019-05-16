@@ -6,7 +6,6 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct GeneralConfig {
-    pub cache_dir: String,
     pub output_format: bool,
     pub verbosity: bool,
 }

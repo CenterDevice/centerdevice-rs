@@ -10,11 +10,11 @@ error_chain! {}
 
 #[derive(Debug, Deserialize)]
 pub struct CenterDeviceConfig {
-    client_id: String,
-    client_secret: String,
-    refresh_token: Option<String>,
-    access_token: Option<String>,
-    api_base_url: String,
+    pub client_id: String,
+    pub client_secret: String,
+    pub refresh_token: Option<String>,
+    pub access_token: String,
+    pub api_base_url: String,
 }
 
 fn prepare_request<'a, 'b>(client: &'a Client, method: Method, url: &'b str, token: String) -> Result<RequestBuilder<'a>> {
