@@ -7,14 +7,16 @@ fn main() {
     let access_token = env::var_os("CENTERDEVICE_ACCESS_TOKEN").expect("Environment variable 'CENTERDEVICE_ACCESS_TOKEN' is not set.");
     let refresh_token = env::var_os("CENTERDEVICE_REFRESH_TOKEN").expect("Environment variable 'CENTERDEVICE_REFRESH_TOKEN' is not set.");
 
-    let credentials = Credentials::new(
+    let client_credentials = ClientCredentials::new(
         client_id.to_string_lossy().to_string(),
         client_secret.to_string_lossy().to_string(),
+    );
+    let user_tokens = UserTokens::new(
         access_token.to_string_lossy().to_string(),
     );
     let refresh_token = refresh_token.to_string_lossy().to_string();
 
-    let mut centerdevice = CenterDevice::new("centerdevice.de".to_string(), credentials);
+    let mut centerdevice = CenterDevice::new("centerdevice.de".to_string(), client_credentials, user_tokens);
 
     let token = centerdevice.refresh_access_token(&refresh_token)
         .expect("Search failed.");
