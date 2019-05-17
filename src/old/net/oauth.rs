@@ -1,5 +1,5 @@
-use crate::Config;
-use crate::net::http::tls_client;
+use crate::old::Config;
+use crate::old::net::http::tls_client;
 
 use base64;
 use error_chain::*;

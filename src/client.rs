@@ -7,6 +7,10 @@ use reqwest;
 use reqwest::IntoUrl;
 
 
+pub trait CenterDevice {
+    fn refresh_access_token(&self) -> Result<Token>;
+}
+
 pub struct Client {}
 
 impl Client {
@@ -70,8 +74,10 @@ impl AuthorizedClient {
     pub fn token(&self) -> &Token {
         &self.token
     }
+}
 
-    pub fn refresh_access_token(&self) -> Result<Token> {
+impl CenterDevice for AuthorizedClient {
+    fn refresh_access_token(&self) -> Result<Token> {
         auth::refresh_access_token(self)
     }
 }
@@ -206,16 +212,16 @@ mod auth {
         Ok(token)
     }
 
-    pub fn refresh_access_token(client: &AuthorizedClient) -> Result<Token> {
-        let url = format!("https://auth.{}/token", client.base_url);
-        let params = [("grant_type", "refresh_token"), ("refresh_token", &client.token.refresh_token)];
+    pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Token> {
+        let url = format!("https://auth.{}/token", authorized_client.base_url);
+        let params = [("grant_type", "refresh_token"), ("refresh_token", &authorized_client.token.refresh_token)];
 
-        let token = client
+        let token = authorized_client
             .http_client
             .post(&url)
             .basic_auth(
-                &client.client_credentials.client_id,
-                Some(&client.client_credentials.client_secret),
+                &authorized_client.client_credentials.client_id,
+                Some(&authorized_client.client_credentials.client_secret),
             )
             .form(&params)
             .send()

@@ -29,7 +29,7 @@ fn prepare_request<'a, 'b>(client: &'a Client, method: Method, url: &'b str, tok
 
 pub mod collections {
     use super::prepare_request;
-    use crate::net::http::tls_client;
+    use crate::old::net::http::tls_client;
 
     use error_chain::*;
     use hyper::method::Method;
@@ -124,7 +124,7 @@ pub mod collections {
 
 mod delete {
     use super::prepare_request;
-    use crate::net::http::tls_client;
+    use crate::old::net::http::tls_client;
 
     use error_chain::*;
     use hyper::method::Method;
@@ -190,8 +190,8 @@ mod delete {
 
 mod download {
     use super::prepare_request;
-    use crate::net::http::tls_client;
-    use crate::utils::io::ReadWithProgress;
+    use crate::old::net::http::tls_client;
+    use crate::old::utils::io::ReadWithProgress;
 
     use error_chain::*;
     use hyper::client::Response;
@@ -313,7 +313,7 @@ mod download {
 }
 
 mod refresh_token {
-    use crate::net::http::tls_client;
+    use crate::old::net::http::tls_client;
 
     use error_chain::*;
     use hyper::header::{ContentType, Authorization, Basic};
@@ -356,7 +356,7 @@ mod refresh_token {
 
 pub mod search {
     use super::prepare_request;
-    use crate::net::http::tls_client;
+    use crate::old::net::http::tls_client;
 
     use error_chain::*;
     use hyper::header::{ContentType, Accept, qitem};
@@ -482,7 +482,7 @@ pub mod search {
 }
 
 mod upload {
-    use crate::utils::io::WriteWithProgress;
+    use crate::old::utils::io::WriteWithProgress;
 
     use crypto::digest::Digest;
     use crypto::sha2::Sha256;

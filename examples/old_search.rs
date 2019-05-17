@@ -1,5 +1,5 @@
-use centerdevice::old_client::search::NamedSearches;
-use centerdevice::old_client::{self, CenterDeviceConfig};
+use centerdevice::old::client::search::NamedSearches;
+use centerdevice::old::client::{self, CenterDeviceConfig};
 use std::env;
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
         api_base_url: "centerdevice.de".to_string(),
     };
 
-    let search_results = old_client::search::search_documents(
+    let search_results = client::search::search_documents(
         &config.api_base_url,
         &config.access_token,
         None,
