@@ -1,4 +1,6 @@
-use centerdevice::client::*;
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::errors::Result;
+
 use std::env;
 
 fn main() {
@@ -30,5 +32,5 @@ fn main() {
     let token = client.refresh_access_token()
         .expect("Search failed.");
 
-    println!("Refreshed Access Token: '{:?}'", token);
+    println!("Refreshed Access Token: '{:#?}'", token);
 }

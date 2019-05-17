@@ -1,5 +1,7 @@
-use centerdevice::client::errors::*;
-use centerdevice::client::*;
+use centerdevice::{Client, ClientCredentials};
+use centerdevice::errors::Result;
+use centerdevice::client::auth::{CodeProvider, Code};
+
 use reqwest::IntoUrl;
 use std::env;
 use std::io;
@@ -46,5 +48,5 @@ fn main() {
 
     let result = client.token();
 
-    println!("Result: '{:?}'", result);
+    println!("Result: '{:#?}'", result);
 }
