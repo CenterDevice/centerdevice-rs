@@ -40,9 +40,11 @@ fn main() {
     let redirect_uri = redirect_uri.to_string_lossy().to_string();
     let code_provider = MyCodeProvider {};
 
-    let result =
-        UserTokens::from_authorization_code_flow(&client_credentials, "centerdevice.de", &redirect_uri, &code_provider)
-            .expect("API call failed.");
+    let client = Client::new("centerdevice.de".to_string(), client_credentials)
+        .authorize_with_code_flow(&redirect_uri, &code_provider)
+        .expect("API call failed.");
+
+    let result = client.token();
 
     println!("Result: '{:?}'", result);
 }

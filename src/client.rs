@@ -6,6 +6,76 @@ use failure::Fail;
 use reqwest;
 use reqwest::IntoUrl;
 
+
+pub struct Client {}
+
+impl Client {
+    pub fn new(base_url: String, client_credentials: ClientCredentials) -> UnauthorizedClient {
+        UnauthorizedClient {
+            base_url,
+            client_credentials,
+            http_client: reqwest::Client::new(),
+        }
+    }
+
+    pub fn with_tokens(base_url: String, client_credentials: ClientCredentials, token: Token) -> AuthorizedClient {
+        AuthorizedClient {
+            base_url,
+            client_credentials,
+            token,
+            http_client: reqwest::Client::new(),
+        }
+    }
+}
+
+pub struct UnauthorizedClient {
+    base_url: String,
+    client_credentials: ClientCredentials,
+    http_client: reqwest::Client,
+}
+
+impl UnauthorizedClient {
+    pub fn authorize_with_code_flow<T: IntoUrl + ToString + Clone, S: CodeProvider>(
+        self,
+        redirect_uri: T,
+        code_provider: &S,
+    ) -> Result<AuthorizedClient> {
+        // FIXME: This allocation is unnecessary.
+        let redirect_url = redirect_uri
+            .clone()
+            .into_url()
+            .map_err(|e| e.context(ErrorKind::ParseUrlFailed(redirect_uri.to_string())))?;
+
+        let token = auth::authorization_code_flow(&self.client_credentials, &self.base_url, &redirect_url, code_provider)?;
+
+        let authorized_client = AuthorizedClient {
+            base_url: self.base_url,
+            client_credentials: self.client_credentials,
+            token,
+            http_client: self.http_client,
+        };
+
+        Ok(authorized_client)
+    }
+}
+
+pub struct AuthorizedClient {
+    base_url: String,
+    client_credentials: ClientCredentials,
+    token: Token,
+    http_client: reqwest::Client,
+}
+
+impl AuthorizedClient {
+    pub fn token(&self) -> &Token {
+        &self.token
+    }
+
+    pub fn refresh_access_token(&self) -> Result<Token> {
+        auth::refresh_access_token(self)
+    }
+}
+
 #[derive(Debug)]
 pub struct ClientCredentials {
     client_id: String,
@@ -21,95 +91,9 @@ impl ClientCredentials {
     }
 }
 
-#[derive(Debug)]
-pub struct UserTokens {
-    access_token: String,
-    refresh_token: Option<String>,
-}
-
-impl UserTokens {
-    pub fn new(access_token: String) -> UserTokens {
-        UserTokens {
-            access_token,
-            refresh_token: None,
-        }
-    }
-
-    pub fn with_refresh_token(access_token: String, refresh_token: String) -> UserTokens {
-        UserTokens {
-            access_token,
-            refresh_token: Some(refresh_token),
-        }
-    }
-
-    pub fn from_authorization_code_flow<T: IntoUrl + ToString + Clone, S: CodeProvider>(
-        client_credentials: &ClientCredentials,
-        base_url: &str,
-        redirect_uri: T,
-        code_provider: &S,
-    ) -> Result<UserTokens> {
-        // FIXME: This allocation is unnecessary.
-        let redirect_url = redirect_uri
-            .clone()
-            .into_url()
-            .map_err(|e| e.context(ErrorKind::ParseUrlFailed(redirect_uri.to_string())))?;
-
-        let tokens = auth::authorization_code_flow(client_credentials, base_url, &redirect_url, code_provider)?;
-
-        Ok(tokens.into())
-    }
-
-    pub fn access_token(&self) -> &str {
-        &self.access_token
-    }
-
-    pub fn refresh_token(&self) -> Option<&str> {
-        self.refresh_token.as_ref().map(String::as_ref)
-    }
-}
-
-impl From<auth::Token> for UserTokens {
-    fn from(refresh_access_token: Token) -> Self {
-        UserTokens {
-            access_token: refresh_access_token.access_token,
-            refresh_token: Some(refresh_access_token.refresh_token),
-        }
-    }
-}
-
-pub struct CenterDevice {
-    base_url: String,
-    client_credentials: ClientCredentials,
-    user_tokens: UserTokens,
-    http_client: reqwest::Client,
-}
-
-impl CenterDevice {
-    pub fn new(base_url: String, client_credentials: ClientCredentials, user_tokens: UserTokens) -> CenterDevice {
-        CenterDevice {
-            base_url,
-            client_credentials,
-            user_tokens,
-            http_client: reqwest::Client::new(),
-        }
-    }
-
-    pub fn user_tokens(&self) -> &UserTokens {
-        &self.user_tokens
-    }
-
-    pub fn refresh_access_token(&mut self, refresh_token: &str) -> Result<Token> {
-        auth::refresh_access_token(self, refresh_token)
-    }
-
-    pub fn search(&self, query: Query) -> Result<SearchResult> {
-        Err(ErrorKind::NotYetImplemented("search".to_string()).into())
-    }
-}
-
 mod auth {
     use crate::client::errors::{ErrorKind, Result};
-    use crate::client::{CenterDevice, ClientCredentials};
+    use crate::client::{ClientCredentials, AuthorizedClient};
 
     use failure::Fail;
     use reqwest::{IntoUrl, Url};
@@ -117,10 +101,37 @@ mod auth {
 
     #[derive(Debug, Deserialize)]
     pub struct Token {
-        pub(crate) token_type: String,
+        pub(crate) token_type: Option<String>,
         pub(crate) access_token: String,
-        pub(crate) expires_in: u32,
+        pub(crate) expires_in: Option<u32>,
         pub(crate) refresh_token: String,
+    }
+
+    impl Token {
+        pub fn new(access_token: String, refresh_token: String) -> Token {
+            Token {
+                token_type: None,
+                access_token,
+                expires_in: None,
+                refresh_token,
+            }
+        }
+
+        pub fn token_type(&self) -> Option<&str> {
+            self.token_type.as_ref().map(String::as_ref)
+        }
+
+        pub fn access_token(&self) -> &str {
+            &self.access_token
+        }
+
+        pub fn expires_in(&self) -> Option<u32> {
+            self.expires_in
+        }
+
+        pub fn refresh_token(&self) -> &str {
+            self.refresh_token.as_ref()
+        }
     }
 
     pub trait CodeProvider {
@@ -195,16 +206,16 @@ mod auth {
         Ok(token)
     }
 
-    pub fn refresh_access_token(centerdevice: &CenterDevice, refresh_token: &str) -> Result<Token> {
-        let url = format!("https://auth.{}/token", centerdevice.base_url);
-        let params = [("grant_type", "refresh_token"), ("refresh_token", refresh_token)];
+    pub fn refresh_access_token(client: &AuthorizedClient) -> Result<Token> {
+        let url = format!("https://auth.{}/token", client.base_url);
+        let params = [("grant_type", "refresh_token"), ("refresh_token", &client.token.refresh_token)];
 
-        let token = centerdevice
+        let token = client
             .http_client
             .post(&url)
             .basic_auth(
-                &centerdevice.client_credentials.client_id,
-                Some(&centerdevice.client_credentials.client_secret),
+                &client.client_credentials.client_id,
+                Some(&client.client_credentials.client_secret),
             )
             .form(&params)
             .send()
