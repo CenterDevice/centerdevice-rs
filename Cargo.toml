@@ -41,7 +41,6 @@ serde_urlencoded = "0.4"
 webbrowser = "0.2"
 
 [dev-dependencies]
-env_logger = "^0.5"
-assert_cli = "^0.6"
+env_logger = "^0.6"
 spectral = "^0.6"
 

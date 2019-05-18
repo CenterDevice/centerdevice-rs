@@ -12,6 +12,8 @@ pub enum ErrorKind {
     ReadResponseFailed,
     #[fail(display = "failed to parse URL '{}'", _0)]
     ParseUrlFailed(String),
+    #[fail(display = "failed to serialize '{}' to JSON", _0)]
+    SerializeJsonFailed(String),
 }
 
 impl Clone for ErrorKind {
@@ -22,6 +24,7 @@ impl Clone for ErrorKind {
             ApiCallFailed => ApiCallFailed,
             ReadResponseFailed => ReadResponseFailed,
             ParseUrlFailed(ref s) => ParseUrlFailed(s.clone()),
+            SerializeJsonFailed(ref s) => SerializeJsonFailed(s.clone()),
         }
     }
 }

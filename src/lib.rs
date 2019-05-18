@@ -6,9 +6,13 @@ pub use crate::client::auth::Token;
 
 use crate::errors::{ErrorKind, Result};
 use crate::client::{UnauthorizedClient, AuthorizedClient};
+use crate::client::search::{Search, SearchResult};
+
+use serde::Serialize;
 
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
+    fn search_documents(&self, search: Search) -> Result<SearchResult>;
 }
 
 pub struct Client {}

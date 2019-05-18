@@ -15,3 +15,4 @@ pub struct Config {
     pub general: GeneralConfig,
     pub centerdevice: client::CenterDeviceConfig,
 }
+
