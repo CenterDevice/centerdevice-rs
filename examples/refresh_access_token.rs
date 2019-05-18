@@ -25,9 +25,9 @@ fn main() {
         client_id,
         client_secret,
     );
-
     let token = Token::new(access_token, refresh_token);
-    let client = Client::with_tokens("centerdevice.de".to_string(), client_credentials, token);
+
+    let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
 
     let token = client.refresh_access_token()
         .expect("Search failed.");

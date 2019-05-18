@@ -26,7 +26,7 @@ impl Client {
         }
     }
 
-    pub fn with_tokens(base_url: String, client_credentials: ClientCredentials, token: Token) -> AuthorizedClient {
+    pub fn with_token(base_url: String, client_credentials: ClientCredentials, token: Token) -> AuthorizedClient {
         AuthorizedClient {
             base_url,
             client_credentials,
