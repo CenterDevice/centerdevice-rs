@@ -1,5 +1,4 @@
 use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
-use centerdevice::errors::Result;
 
 use std::env;
 
