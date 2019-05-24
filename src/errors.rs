@@ -14,6 +14,10 @@ pub enum ErrorKind {
     ParseUrlFailed(String),
     #[fail(display = "failed to serialize '{}' to JSON", _0)]
     SerializeJsonFailed(String),
+    #[fail(display = "filesystem failure")]
+    FileSystemFailure,
+    #[fail(display = "failed to create multipart form")]
+    FailedToMultipart,
 }
 
 impl Clone for ErrorKind {
@@ -25,6 +29,8 @@ impl Clone for ErrorKind {
             ReadResponseFailed => ReadResponseFailed,
             ParseUrlFailed(ref s) => ParseUrlFailed(s.clone()),
             SerializeJsonFailed(ref s) => SerializeJsonFailed(s.clone()),
+            FileSystemFailure => FileSystemFailure,
+            FailedToMultipart => FailedToMultipart,
         }
     }
 }

@@ -5,14 +5,16 @@ pub mod old;
 pub use crate::client::auth::Token;
 
 use crate::errors::{ErrorKind, Result};
-use crate::client::{UnauthorizedClient, AuthorizedClient};
+use crate::client::{UnauthorizedClient, AuthorizedClient, ID};
 use crate::client::search::{Search, SearchResult};
+use crate::client::upload::Upload;
 
 use serde::Serialize;
 
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
     fn search_documents(&self, search: Search) -> Result<SearchResult>;
+    fn upload_file(&self, upload: Upload) -> Result<ID>;
 }
 
 pub struct Client {}
