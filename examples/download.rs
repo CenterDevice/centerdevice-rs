@@ -1,4 +1,4 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token, WithProgress};
 use centerdevice::client::download::Download;
 
 use std::env;

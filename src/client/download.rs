@@ -1,3 +1,4 @@
+use crate::WithProgress;
 use crate::client::{self, AuthorizedClient, ID};
 use crate::errors::{ErrorKind, Error, Result};
 
@@ -13,8 +14,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::borrow::Cow;
 use reqwest::{Body, header, StatusCode, Response};
-use std::io::{Read, BufWriter};
-use std::fmt::Write;
+use std::io::{Write, BufWriter};
 use crate::client::upload::internal::DocumentMetadata;
 use mime_multipart::{Node, Part, FilePart, write_multipart};
 use std::ffi::OsStr;
@@ -43,9 +43,34 @@ impl<'a> Download<'a> {
         }
     }
 }
+struct ProgressWriter<'a, P: ?Sized, W> {
+    progress: Option<&'a P>,
+    inner: W,
+}
 
+impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let amount = self.inner.write(buf)?;
+        if let Some(ref p) = self.progress {
+            p.progress(amount);
+        }
+        Ok(amount)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush()
+    }
+}
 
 pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<u64> {
+    do_download(authorized_client, download, None::<&WithProgress>)
+}
+
+pub fn download_file_with_progress<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, progress: &T) -> Result<u64> {
+    do_download(authorized_client, download, Some(progress))
+}
+
+fn do_download<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, progress: Option<&T>) -> Result<u64> {
     let url = format!("https://api.{}/v2/document/{}", authorized_client.base_url, download.document_id);
 
     let mut response = authorized_client.http_client
@@ -74,7 +99,15 @@ pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -
 
     let file = File::create(file_path.as_path())
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
-    let mut writer = BufWriter::new(file);
+
+    let mut writer = {
+        let inner = BufWriter::new(file);
+        ProgressWriter {
+            progress,
+            inner,
+        }
+    };
+
     let len = response.copy_to(&mut writer)
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
     assert_eq!(content_length, len);

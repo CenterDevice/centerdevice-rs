@@ -17,6 +17,7 @@ pub trait CenterDevice {
     fn search_documents(&self, search: Search) -> Result<SearchResult>;
     fn upload_file(&self, upload: Upload) -> Result<ID>;
     fn download_file(&self, download: Download) -> Result<u64>;
+    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &T) -> Result<u64>;
 }
 
 pub struct Client {}
@@ -54,3 +55,9 @@ impl ClientCredentials {
         }
     }
 }
+
+pub trait WithProgress {
+    fn setup(&self, size: usize);
+    fn progress(&self, amount: usize);
+}
+
