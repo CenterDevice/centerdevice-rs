@@ -1,23 +1,13 @@
 use crate::WithProgress;
-use crate::client::{self, AuthorizedClient, ID};
+use crate::client::{AuthorizedClient, ID};
 use crate::errors::{ErrorKind, Error, Result};
 
 use failure::Fail;
-use hex;
-use mime::*;
-use ring;
-use serde::{self, Deserialize, Serialize, Deserializer};
-use serde::de::Visitor;
-use std::{fmt, io};
-use std::str::FromStr;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use std::borrow::Cow;
-use reqwest::{Body, header, StatusCode, Response};
+use reqwest::{header, StatusCode, Response};
 use std::io::{Write, BufWriter};
-use crate::client::upload::internal::DocumentMetadata;
-use mime_multipart::{Node, Part, FilePart, write_multipart};
-use std::ffi::OsStr;
+use std::string::ToString;
 
 
 pub struct Download<'a> {
@@ -144,8 +134,8 @@ fn get_filename(response: &Response) -> Result<String> {
         }
     }
     filename
-        .ok_or(Error::from(ErrorKind::FailedToGetFilename))
-        .map(|x| x.to_string())
+        .ok_or_else(|| Error::from(ErrorKind::FailedToGetFilename))
+        .map(ToString::to_string)
 }
 
 fn get_content_length(response: &Response) -> Result<u64> {

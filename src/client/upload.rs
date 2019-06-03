@@ -6,16 +6,10 @@ use failure::Fail;
 use hex;
 use mime::*;
 use ring;
-use serde::{self, Deserialize, Serialize, Deserializer};
-use serde::de::Visitor;
-use std::{fmt, io};
-use std::str::FromStr;
-use std::fs::File;
+use serde::{self, Deserialize};
 use std::path::Path;
 use std::borrow::Cow;
-use reqwest::{Body, header, Response, StatusCode};
-use std::io::Read;
-use std::fmt::Write;
+use reqwest::{header, Response, StatusCode};
 use mime_multipart::{Node, Part, FilePart, write_multipart};
 
 

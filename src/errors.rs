@@ -37,7 +37,7 @@ impl Clone for ErrorKind {
         match *self {
             NotYetImplemented(ref s) => NotYetImplemented(s.clone()),
             ApiCallFailed => ApiCallFailed,
-            ApiCallError(ref status_code, ref body) => ApiCallError(status_code.clone(), body.clone()),
+            ApiCallError(ref status_code, ref body) => ApiCallError(*status_code, body.clone()),
             ReadResponseFailed => ReadResponseFailed,
             ParseUrlFailed(ref s) => ParseUrlFailed(s.clone()),
             SerializeJsonFailed(ref s) => SerializeJsonFailed(s.clone()),

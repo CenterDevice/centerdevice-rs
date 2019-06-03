@@ -24,7 +24,7 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-    let ids: Vec<&str> = document_ids.split(",").collect();
+    let ids: Vec<&str> = document_ids.split(',').collect();
 
     let client_credentials = ClientCredentials::new(
         client_id,
@@ -33,9 +33,9 @@ fn main() {
     let token = Token::new(access_token, refresh_token);
     let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
 
-    let result = client
+    client
         .delete_documents(&ids)
         .expect("Download failed");
 
-   println!("Result: {:#?}", result);
+   println!("Ok");
 }

@@ -12,13 +12,8 @@ use crate::client::upload::Upload;
 use crate::client::download::Download;
 
 use failure::Fail;
-use mime;
 use reqwest;
 use reqwest::IntoUrl;
-use serde::{self, Deserialize, Serialize, Deserializer};
-use serde::de::Visitor;
-use std::fmt;
-use std::str::FromStr;
 
 pub struct UnauthorizedClient {
     pub(crate) base_url: String,

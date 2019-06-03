@@ -2,7 +2,7 @@ use crate::client::{AuthorizedClient, ID};
 use crate::errors::{ErrorKind, Error, Result};
 
 use failure::Fail;
-use serde::{self, Deserialize, Serialize, Deserializer};
+use serde::{self, Deserialize, Serialize};
 use reqwest::StatusCode;
 
 

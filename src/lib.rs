@@ -9,8 +9,6 @@ use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
 use crate::client::download::Download;
 
-use serde::Serialize;
-
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
     fn search_documents(&self, search: Search) -> Result<SearchResult>;
@@ -23,6 +21,7 @@ pub trait CenterDevice {
 pub struct Client {}
 
 impl Client {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(base_url: String, client_credentials: ClientCredentials) -> UnauthorizedClient {
         UnauthorizedClient {
             base_url,

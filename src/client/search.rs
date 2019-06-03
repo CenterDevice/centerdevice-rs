@@ -3,8 +3,8 @@ use crate::errors::{ErrorKind, Error, Result};
 
 use failure::Fail;
 use mime;
-use reqwest::{header, Response, StatusCode};
-use serde::{self, Deserialize, Serialize, Deserializer};
+use reqwest::{Response, StatusCode};
+use serde::{self, Deserialize, Deserializer};
 use serde::de::Visitor;
 use std::fmt;
 use std::str::FromStr;
@@ -59,6 +59,12 @@ impl<'a> Search<'a> {
             named_search,
             ..self
         }
+    }
+}
+
+impl<'a> Default for Search<'a> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
