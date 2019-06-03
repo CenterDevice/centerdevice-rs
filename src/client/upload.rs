@@ -147,7 +147,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
-        .map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed("multipart".to_string())))?;
 
     let mut response: Response = authorized_client
         .http_client
@@ -160,15 +160,15 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         )
         .body(body)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
 
     if response.status() != StatusCode::CREATED {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
-        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     }
 
-    let result: Id = response.json().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let result: Id = response.json().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
 
     Ok(result.id)
 }
@@ -180,7 +180,7 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
     let json_bytes = serde_json::to_string(metadata)
-        .map_err(|e| e.context(ErrorKind::SerializeJsonFailed("doc-metadata".to_string())))?
+        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed("serializing doc-metadata json".to_string())))?
         .into_bytes();
 
     let mut h = Headers::new();

@@ -43,12 +43,12 @@ pub fn delete_documents(authorized_client: &AuthorizedClient, document_ids: &[&s
         .bearer_auth(&authorized_client.token.access_token)
         .json(&delete_action)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
 
     if response.status() != StatusCode::NO_CONTENT {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
-        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     } else {
         let failed_documents = response.json::<FailedDocuments>();
         if let Ok(failed_documents) = failed_documents {

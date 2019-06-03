@@ -81,7 +81,7 @@ fn get_code<T: CodeProvider>(
         ("response_type", "code"),
     ];
     let auth_url = Url::parse_with_params(&auth_endpoint, &params)
-        .map_err(|e| e.context(ErrorKind::ParseUrlFailed(redirect_uri.to_string())))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed(redirect_uri.to_string())))?;
 
     code_provider.get_code(auth_url)
 }
@@ -106,15 +106,15 @@ pub fn exchange_code_for_token(
         .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
         .form(&params)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
 
     if response.status() != StatusCode::OK {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
-        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string())))?;
+        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     }
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing json".to_string()))?;
 
     Ok(result)
 }
@@ -135,9 +135,9 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         )
         .form(&params)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .json()
-        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpResponseReadFailed))?;
 
     Ok(token)
 }

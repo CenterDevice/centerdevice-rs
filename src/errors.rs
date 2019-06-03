@@ -7,26 +7,22 @@ use std::fmt;
 /// The error kind for errors that get returned in the crate
 #[derive(Eq, PartialEq, Debug, Fail)]
 pub enum ErrorKind {
-    #[fail(display = "function '{}' is not yet implemeted", _0)]
-    NotYetImplemented(String),
-    #[fail(display = "API call failed")]
-    ApiCallFailed,
-    #[fail(display = "API call returned an error ({}), '{}'", _0, _1)]
-    ApiCallError(StatusCode, String),
-    #[fail(display = "failed to read API call response")]
-    ReadResponseFailed,
-    #[fail(display = "failed to parse URL '{}'", _0)]
-    ParseUrlFailed(String),
-    #[fail(display = "failed to serialize '{}' to JSON", _0)]
-    SerializeJsonFailed(String),
-    #[fail(display = "filesystem failure")]
-    FileSystemFailure,
+    #[fail(display = "failed to prepare HTTP request, '{}'", _0)]
+    HttpRequestPrepareFailed(String),
     #[fail(display = "failed to create multipart form")]
     FailedToMultipart,
-    #[fail(display = "failed to get filename")]
-    FailedToGetFilename,
-    #[fail(display = "failed to get content length")]
-    FailedToGetContentLength,
+
+    #[fail(display = "HTTP request failed")]
+    HttpRequestFailed,
+
+    #[fail(display = "failed to read HTTP response, {}", _0)]
+    HttpResponseReadFailed(String),
+
+    #[fail(display = "filesystem failure")]
+    FileSystemFailure,
+
+    #[fail(display = "API call failed with status code {}, '{}'", _0, _1)]
+    ApiCallFailed(StatusCode, String),
     #[fail(display = "failed documents; ids='{:?}'", _0)]
     FailedDocuments(Vec<ID>),
 }
@@ -35,16 +31,11 @@ impl Clone for ErrorKind {
     fn clone(&self) -> Self {
         use self::ErrorKind::*;
         match *self {
-            NotYetImplemented(ref s) => NotYetImplemented(s.clone()),
-            ApiCallFailed => ApiCallFailed,
-            ApiCallError(ref status_code, ref body) => ApiCallError(*status_code, body.clone()),
-            ReadResponseFailed => ReadResponseFailed,
-            ParseUrlFailed(ref s) => ParseUrlFailed(s.clone()),
-            SerializeJsonFailed(ref s) => SerializeJsonFailed(s.clone()),
+            HttpRequestFailed => HttpRequestFailed,
+            ApiCallFailed(ref status_code, ref body) => ApiCallFailed(*status_code, body.clone()),
+            HttpResponseReadFailed(ref s) => HttpResponseReadFailed(s.clone()),
+            HttpRequestPrepareFailed(ref s) => HttpRequestPrepareFailed(s.clone()),
             FileSystemFailure => FileSystemFailure,
-            FailedToMultipart => FailedToMultipart,
-            FailedToGetFilename => FailedToGetFilename,
-            FailedToGetContentLength => FailedToGetContentLength,
             FailedDocuments(ref s) => FailedDocuments(s.clone()),
         }
     }

@@ -77,12 +77,12 @@ fn do_download<T: WithProgress + ?Sized>(
         .get(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
 
     if response.status() != StatusCode::OK {
         let status = response.status();
         let body = response.text().unwrap_or_else(|_| "Failed to read body".to_string());
-        return Err(Error::from(ErrorKind::ApiCallError(status, body)));
+        return Err(Error::from(ErrorKind::ApiCallFailed(status, body)));
     }
 
     let content_length = get_content_length(&response)?;
@@ -97,7 +97,7 @@ fn do_download<T: WithProgress + ?Sized>(
     let mut file_path = PathBuf::from(&download.dir);
     file_path.push(filename);
 
-    let file = File::create(file_path.as_path()).map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let file = File::create(file_path.as_path()).map_err(|e| e.context(ErrorKind::FileSystemFailure))?;
 
     let mut writer = {
         if let Some(ref mut p) = progress {
@@ -109,7 +109,7 @@ fn do_download<T: WithProgress + ?Sized>(
 
     let len = response
         .copy_to(&mut writer)
-        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
     assert_eq!(content_length, len);
 
     if let Some(ref mut p) = writer.progress {
@@ -127,22 +127,22 @@ fn get_filename(response: &Response) -> Result<String> {
     let header: Vec<_> = response
         .headers()
         .get(header::CONTENT_DISPOSITION)
-        .ok_or(ErrorKind::FailedToGetFilename)?
+        .ok_or(ErrorKind::HttpResponseReadFailed("content disposition header".to_string())?
         .as_bytes()
         .to_vec();
     let content_disposition: ContentDisposition =
-        ContentDisposition::parse_header(&[header]).map_err(|e| e.context(ErrorKind::FailedToGetFilename))?;
+        ContentDisposition::parse_header(&[header]).map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing content disposition header".to_string()))?;
 
     let mut filename = None;
     for cp in &content_disposition.parameters {
         if let DispositionParam::Filename(_, _, ref f) = *cp {
-            let decoded = str::from_utf8(f).map_err(|e| e.context(ErrorKind::FailedToGetFilename))?;
+            let decoded = str::from_utf8(f).map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing content disposition filename".to_string()))?;
             filename = Some(decoded);
             break;
         }
     }
     filename
-        .ok_or_else(|| Error::from(ErrorKind::FailedToGetFilename))
+        .ok_or_else(|| Error::from(ErrorKind::HttpResponseReadFailed("content disposition header filename not found".to_string()))
         .map(ToString::to_string)
 }
 
@@ -150,10 +150,10 @@ fn get_content_length(response: &Response) -> Result<u64> {
     let content_length = response
         .headers()
         .get(header::CONTENT_LENGTH)
-        .ok_or(ErrorKind::FailedToGetContentLength)?
+        .ok_or(ErrorKind::HttpResponseReadFailed("content length header".to_string())?
         .to_str()
-        .map_err(|e| e.context(ErrorKind::FailedToGetContentLength))?
+        .map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing content length header".to_string()))?
         .parse::<u64>()
-        .map_err(|e| e.context(ErrorKind::FailedToGetContentLength))?;
+        .map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing content length".to_string()))?;
     Ok(content_length)
 }
