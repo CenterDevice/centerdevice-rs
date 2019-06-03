@@ -1,5 +1,5 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 use centerdevice::client::search::*;
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 
 use std::env;
 
@@ -21,17 +21,13 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-    let client_credentials = ClientCredentials::new(
-        client_id,
-        client_secret,
-    );
+    let client_credentials = ClientCredentials::new(client_id, client_secret);
     let token = Token::new(access_token, refresh_token);
 
     let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
     let search = Search::new().fulltext("kartoffel");
 
-    let search_results = client.search_documents(search)
-        .expect("Search failed.");
+    let search_results = client.search_documents(search).expect("Search failed.");
 
     println!("Result: {:#?}", search_results);
 }

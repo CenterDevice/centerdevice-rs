@@ -1,6 +1,6 @@
-use centerdevice::{Client, ClientCredentials};
+use centerdevice::client::auth::{Code, CodeProvider};
 use centerdevice::errors::Result;
-use centerdevice::client::auth::{CodeProvider, Code};
+use centerdevice::{Client, ClientCredentials};
 
 use reqwest::IntoUrl;
 use std::env;

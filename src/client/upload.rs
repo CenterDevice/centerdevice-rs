@@ -1,17 +1,16 @@
-use crate::client::{self, AuthorizedClient};
-use crate::errors::{ErrorKind, Error, Result};
 use crate::client::upload::internal::DocumentMetadata;
+use crate::client::{self, AuthorizedClient};
+use crate::errors::{Error, ErrorKind, Result};
 
 use failure::Fail;
 use hex;
 use mime::*;
+use mime_multipart::{write_multipart, FilePart, Node, Part};
+use reqwest::{header, Response, StatusCode};
 use ring;
 use serde::{self, Deserialize};
-use std::path::Path;
 use std::borrow::Cow;
-use reqwest::{header, Response, StatusCode};
-use mime_multipart::{Node, Part, FilePart, write_multipart};
-
+use std::path::Path;
 
 #[derive(PartialEq, Debug)]
 pub enum NamedSearch {
@@ -32,25 +31,19 @@ pub struct Upload<'a> {
 
 impl<'a> Upload<'a> {
     pub fn new(path: &'a Path, mime_type: Mime) -> Result<Upload<'a>> {
-        let metadata = path.metadata()
-            .map_err(|e| e.context(ErrorKind::FileSystemFailure))?;
-        let filename = path
-            .file_name()
-            .ok_or(ErrorKind::FileSystemFailure)?
-            .to_string_lossy();
+        let metadata = path.metadata().map_err(|e| e.context(ErrorKind::FileSystemFailure))?;
+        let filename = path.file_name().ok_or(ErrorKind::FileSystemFailure)?.to_string_lossy();
 
-        Ok(
-            Upload {
-                path,
-                mime_type,
-                filename,
-                size: metadata.len(),
-                title: None,
-                author: None,
-                tags: &[],
-                collections: &[],
-            }
-        )
+        Ok(Upload {
+            path,
+            mime_type,
+            filename,
+            size: metadata.len(),
+            title: None,
+            author: None,
+            tags: &[],
+            collections: &[],
+        })
     }
 
     pub fn with_title(path: &'a Path, mime_type: Mime, title: &'a str) -> Result<Upload<'a>> {
@@ -64,7 +57,7 @@ impl<'a> Upload<'a> {
         }
     }
 
-     pub fn author(self, author: &'a str) -> Upload<'a> {
+    pub fn author(self, author: &'a str) -> Upload<'a> {
         Upload {
             author: Some(author),
             ..self
@@ -72,19 +65,12 @@ impl<'a> Upload<'a> {
     }
 
     pub fn tags(self, tags: &'a [&str]) -> Upload<'a> {
-        Upload {
-            tags,
-            ..self
-        }
+        Upload { tags, ..self }
     }
 
     pub fn collections(self, collections: &'a [&str]) -> Upload<'a> {
-        Upload {
-            collections,
-            ..self
-        }
+        Upload { collections, ..self }
     }
-
 }
 
 pub(crate) mod internal {
@@ -122,12 +108,22 @@ pub(crate) mod internal {
 
     impl<'a> DocumentMetadata<'a> {
         pub fn from_upload(u: &'a super::Upload<'a>) -> Self {
-            let document = Document { filename: u.filename.as_ref(), size: u.size, title: u.title, author: u.author};
-            let actions = Actions { tags: Some(u.tags), collections: Some(u.collections) };
-            let metadata = Metadata { document, actions: Some(actions) };
+            let document = Document {
+                filename: u.filename.as_ref(),
+                size: u.size,
+                title: u.title,
+                author: u.author,
+            };
+            let actions = Actions {
+                tags: Some(u.tags),
+                collections: Some(u.collections),
+            };
+            let metadata = Metadata {
+                document,
+                actions: Some(actions),
+            };
 
             DocumentMetadata { metadata }
-
         }
     }
 }
@@ -143,43 +139,43 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
     let document_metadata = internal::DocumentMetadata::from_upload(&upload);
 
     /* FIXME: Loads all the things into memory.
-    * cf. https://github.com/seanmonstar/reqwest/issues/365
-    * cf. https://github.com/seanmonstar/reqwest/issues/262
-    */
+     * cf. https://github.com/seanmonstar/reqwest/issues/365
+     * cf. https://github.com/seanmonstar/reqwest/issues/262
+     */
     let mut body: Vec<u8> = Vec::new();
-    let nodes = create_multipart(&document_metadata, &upload)
-        .map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
+    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
         .map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
 
-    let mut response: Response = authorized_client.http_client
+    let mut response: Response = authorized_client
+        .http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .header(header::CONTENT_TYPE, content_type.to_string().as_bytes())
-        .header(header::ACCEPT, mime!(Application / Json; Charset = Utf8).to_string().as_bytes())
+        .header(
+            header::ACCEPT,
+            mime!(Application / Json; Charset = Utf8).to_string().as_bytes(),
+        )
         .body(body)
         .send()
         .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
 
     if response.status() != StatusCode::CREATED {
         let status_code = response.status();
-        let body = response.text()
-            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
         return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
     }
 
-    let result: Id = response
-        .json()
-        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let result: Id = response.json().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
     Ok(result.id)
 }
 
 fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<Node>> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10 headers and mime 0.2
-    use hyper::header::{ContentType, Headers, ContentDisposition, DispositionType, DispositionParam};
+    use hyper::header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers};
 
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
@@ -202,8 +198,10 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     h.set(ContentType(upload.mime_type.clone()));
     h.set(ContentDisposition {
         disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![DispositionParam::Ext("name".to_string(), "document".to_string()),
-                         DispositionParam::Ext("filename".to_string(), upload.filename.to_string())],
+        parameters: vec![
+            DispositionParam::Ext("name".to_string(), "document".to_string()),
+            DispositionParam::Ext("filename".to_string(), upload.filename.to_string()),
+        ],
     });
     nodes.push(Node::File(FilePart::new(h, upload.path)));
 

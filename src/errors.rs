@@ -1,8 +1,8 @@
 use crate::ID;
 
 use failure::{Backtrace, Context, Fail};
-use std::fmt;
 use reqwest::StatusCode;
+use std::fmt;
 
 /// The error kind for errors that get returned in the crate
 #[derive(Eq, PartialEq, Debug, Fail)]

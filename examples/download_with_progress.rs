@@ -1,9 +1,9 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token, WithProgress};
 use centerdevice::client::download::Download;
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token, WithProgress};
 
 use std::env;
+use std::io::{stdout, Write};
 use std::path::Path;
-use std::io::{Write, stdout};
 
 pub struct Progress {
     amount: usize,
@@ -12,7 +12,7 @@ pub struct Progress {
 }
 
 impl Progress {
-    fn new()  -> Self {
+    fn new() -> Self {
         Progress {
             amount: 0,
             interval: 0,
@@ -62,18 +62,13 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-
-    let client_credentials = ClientCredentials::new(
-        client_id,
-        client_secret,
-    );
+    let client_credentials = ClientCredentials::new(client_id, client_secret);
     let token = Token::new(access_token, refresh_token);
     let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
 
     let download_dir_path = "/tmp";
     let path = Path::new(download_dir_path);
-    let download = Download::new(document_id, path)
-        .filename(Path::new("centerdevice_download"));
+    let download = Download::new(document_id, path).filename(Path::new("centerdevice_download"));
 
     let mut progress = Progress::new();
     let result = client
@@ -81,5 +76,5 @@ fn main() {
         .download_file_with_progress(download, &mut progress)
         .expect("Download failed");
 
-   println!("Result: {:#?}", result);
+    println!("Result: {:#?}", result);
 }

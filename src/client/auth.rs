@@ -1,9 +1,9 @@
-use crate::ClientCredentials;
-use crate::errors::{Error, ErrorKind, Result};
 use crate::client::AuthorizedClient;
+use crate::errors::{Error, ErrorKind, Result};
+use crate::ClientCredentials;
 
 use failure::Fail;
-use reqwest::{IntoUrl, Url, Response, StatusCode};
+use reqwest::{IntoUrl, Response, StatusCode, Url};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -110,21 +110,21 @@ pub fn exchange_code_for_token(
 
     if response.status() != StatusCode::OK {
         let status_code = response.status();
-        let body = response.text()
-            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
         return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
     }
 
-    let result = response
-        .json()
-        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
     Ok(result)
 }
 
 pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Token> {
     let url = format!("https://auth.{}/token", authorized_client.base_url);
-    let params = [("grant_type", "refresh_token"), ("refresh_token", &authorized_client.token.refresh_token)];
+    let params = [
+        ("grant_type", "refresh_token"),
+        ("refresh_token", &authorized_client.token.refresh_token),
+    ];
 
     let token = authorized_client
         .http_client

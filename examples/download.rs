@@ -1,5 +1,5 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 use centerdevice::client::download::Download;
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 
 use std::env;
 use std::path::Path;
@@ -26,10 +26,7 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-    let client_credentials = ClientCredentials::new(
-        client_id,
-        client_secret,
-    );
+    let client_credentials = ClientCredentials::new(client_id, client_secret);
     let token = Token::new(access_token, refresh_token);
     let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
 
@@ -37,9 +34,7 @@ fn main() {
     let path = Path::new(download_dir_path);
     let download = Download::new(document_id, path);
 
-    let result = client
-        .download_file(download)
-        .expect("Download failed");
+    let result = client.download_file(download).expect("Download failed");
 
-   println!("Result: {:#?}", result);
+    println!("Result: {:#?}", result);
 }

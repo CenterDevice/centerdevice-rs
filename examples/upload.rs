@@ -1,5 +1,5 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 use centerdevice::client::upload::Upload;
+use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 
 use mime_guess;
 use std::env;
@@ -23,10 +23,7 @@ fn main() {
         .to_string_lossy()
         .to_string();
 
-    let client_credentials = ClientCredentials::new(
-        client_id,
-        client_secret,
-    );
+    let client_credentials = ClientCredentials::new(client_id, client_secret);
     let token = Token::new(access_token, refresh_token);
     let client = Client::with_token("centerdevice.de".to_string(), client_credentials, token);
 
@@ -39,8 +36,7 @@ fn main() {
         .author("Lukas Pustina")
         .tags(&["rust"]);
 
-    let result = client.upload_file(upload)
-        .expect("Upload failed");
+    let result = client.upload_file(upload).expect("Upload failed");
 
-   println!("Result: {:#?}", result);
+    println!("Result: {:#?}", result);
 }

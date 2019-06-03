@@ -1,13 +1,13 @@
-pub mod errors;
 pub mod client;
+pub mod errors;
 
 pub use crate::client::auth::Token;
 
-use crate::errors::{ErrorKind, Result};
-use crate::client::{UnauthorizedClient, AuthorizedClient, ID};
+use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
-use crate::client::download::Download;
+use crate::client::{AuthorizedClient, UnauthorizedClient, ID};
+use crate::errors::{ErrorKind, Result};
 
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
@@ -60,4 +60,3 @@ pub trait WithProgress {
     fn progress(&mut self, amount: usize);
     fn finish(&self);
 }
-

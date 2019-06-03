@@ -1,15 +1,15 @@
 pub mod auth;
+pub mod delete;
 pub mod download;
 pub mod search;
 pub mod upload;
-pub mod delete;
 
 pub use auth::{Code, CodeProvider, Token};
 
-use crate::{CenterDevice, ClientCredentials, ErrorKind, Result, WithProgress};
+use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
-use crate::client::download::Download;
+use crate::{CenterDevice, ClientCredentials, ErrorKind, Result, WithProgress};
 
 use failure::Fail;
 use reqwest;
@@ -32,7 +32,8 @@ impl UnauthorizedClient {
             .into_url()
             .map_err(|e| e.context(ErrorKind::ParseUrlFailed(redirect_uri.to_string())))?;
 
-        let token = auth::authorization_code_flow(&self.client_credentials, &self.base_url, &redirect_url, code_provider)?;
+        let token =
+            auth::authorization_code_flow(&self.client_credentials, &self.base_url, &redirect_url, code_provider)?;
 
         let authorized_client = AuthorizedClient {
             base_url: self.base_url,
@@ -67,7 +68,7 @@ impl CenterDevice for AuthorizedClient {
         search::search_documents(self, search)
     }
 
-    fn upload_file(&self, upload: Upload) -> Result<ID>{
+    fn upload_file(&self, upload: Upload) -> Result<ID> {
         upload::upload_file(&self, upload)
     }
 
@@ -82,8 +83,6 @@ impl CenterDevice for AuthorizedClient {
     fn delete_documents(&self, document_ids: &[&str]) -> Result<()> {
         delete::delete_documents(self, document_ids)
     }
-
 }
 
 pub type ID = String;
-

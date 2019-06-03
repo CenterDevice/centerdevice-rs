@@ -1,14 +1,13 @@
 use crate::client::{AuthorizedClient, ID};
-use crate::errors::{ErrorKind, Error, Result};
+use crate::errors::{Error, ErrorKind, Result};
 
 use failure::Fail;
 use mime;
 use reqwest::{Response, StatusCode};
-use serde::{self, Deserialize, Deserializer};
 use serde::de::Visitor;
+use serde::{self, Deserialize, Deserializer};
 use std::fmt;
 use std::str::FromStr;
-
 
 #[derive(PartialEq, Debug)]
 pub enum NamedSearch {
@@ -55,10 +54,7 @@ impl<'a> Search<'a> {
     }
 
     pub fn named_searches(self, named_search: NamedSearch) -> Search<'a> {
-        Search {
-            named_search,
-            ..self
-        }
+        Search { named_search, ..self }
     }
 }
 
@@ -107,26 +103,34 @@ pub(crate) mod internal {
 
     #[derive(Serialize, Debug)]
     struct Include {
-        include: bool
+        include: bool,
     }
 
     impl<'a> Search<'a> {
         pub fn from_search(s: super::Search<'a>) -> Self {
-
             let named: Option<Vec<Named>> = match s.named_search {
                 super::NamedSearch::None => None,
                 super::NamedSearch::PublicCollections => {
                     let include = Include { include: true };
-                    let named = vec![Named { name: "public-collections", params: include }];
+                    let named = vec![Named {
+                        name: "public-collections",
+                        params: include,
+                    }];
                     Some(named)
                 }
             };
 
-            let filter = Filter { filenames: s.filenames, tags: s.tags };
+            let filter = Filter {
+                filenames: s.filenames,
+                tags: s.tags,
+            };
             let query = Query { text: s.fulltext };
             let params = Params { query, filter, named };
 
-            Search { action: "search", params }
+            Search {
+                action: "search",
+                params,
+            }
         }
     }
 }
@@ -136,7 +140,6 @@ pub struct SearchResult {
     documents: Vec<Document>,
     hits: usize,
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct Document {
@@ -166,8 +169,8 @@ pub struct Document {
 }
 
 fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime::Mime, D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     struct MechanismVisitor;
 
@@ -178,9 +181,11 @@ fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime:
             formatter.write_str("string with valid mime type")
         }
 
-        fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E> where E: serde::de::Error {
-            mime::Mime::from_str(s)
-                .map_err(|_| serde::de::Error::custom("invalid mime type"))
+        fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            mime::Mime::from_str(s).map_err(|_| serde::de::Error::custom("invalid mime type"))
         }
     }
 
@@ -192,7 +197,8 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
 
     let internal_search = internal::Search::from_search(search);
 
-    let mut response: Response = authorized_client.http_client
+    let mut response: Response = authorized_client
+        .http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .json(&internal_search)
@@ -201,14 +207,11 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
 
     if response.status() != StatusCode::OK {
         let status_code = response.status();
-        let body = response.text()
-            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
         return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
     }
 
-    let result = response
-        .json()
-        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
     Ok(result)
 }
@@ -261,7 +264,6 @@ mod test {
     "version": 1,
     "version-date": "2012-12-11T14:31:57.508Z"
 }"#;
-
 
             let document: std::result::Result<Document, _> = serde_json::from_str(document_json);
 
