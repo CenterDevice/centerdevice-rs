@@ -44,14 +44,14 @@ impl<'a> Download<'a> {
     }
 }
 struct ProgressWriter<'a, P: ?Sized, W> {
-    progress: Option<&'a P>,
+    progress: Option<&'a mut P>,
     inner: W,
 }
 
 impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let amount = self.inner.write(buf)?;
-        if let Some(ref p) = self.progress {
+        if let Some(ref mut p) = self.progress {
             p.progress(amount);
         }
         Ok(amount)
@@ -63,14 +63,14 @@ impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> 
 }
 
 pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<u64> {
-    do_download(authorized_client, download, None::<&WithProgress>)
+    do_download(authorized_client, download, None::<&mut WithProgress>)
 }
 
-pub fn download_file_with_progress<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, progress: &T) -> Result<u64> {
+pub fn download_file_with_progress<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, progress: &mut T) -> Result<u64> {
     do_download(authorized_client, download, Some(progress))
 }
 
-fn do_download<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, progress: Option<&T>) -> Result<u64> {
+fn do_download<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, download: Download, mut progress: Option<&mut T>) -> Result<u64> {
     let url = format!("https://api.{}/v2/document/{}", authorized_client.base_url, download.document_id);
 
     let mut response = authorized_client.http_client
@@ -100,20 +100,24 @@ fn do_download<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, d
     let file = File::create(file_path.as_path())
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
-    let mut writer: Write = if let Some(p) = progress {
-        p.setup(content_length as usize);
+    let mut writer = {
+        if let Some(ref mut p) = progress {
+            p.setup(content_length as usize);
+        }
         let inner = BufWriter::new(file);
         ProgressWriter {
             progress,
             inner,
         }
-    } else {
-        BufWriter::new(file);
     };
 
     let len = response.copy_to(&mut writer)
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
     assert_eq!(content_length, len);
+
+    if let Some(ref mut p) = writer.progress {
+        p.finish();
+    }
 
     Ok(len)
 }

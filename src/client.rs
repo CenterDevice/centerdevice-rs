@@ -79,7 +79,7 @@ impl CenterDevice for AuthorizedClient {
         download::download_file(self, download)
     }
 
-    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &T) -> Result<u64> {
+    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64> {
         download::download_file_with_progress(self, download, progress)
     }
 
