@@ -2,6 +2,7 @@ pub mod auth;
 pub mod download;
 pub mod search;
 pub mod upload;
+pub mod delete;
 
 pub use auth::{Code, CodeProvider, Token};
 
@@ -81,6 +82,10 @@ impl CenterDevice for AuthorizedClient {
 
     fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64> {
         download::download_file_with_progress(self, download, progress)
+    }
+
+    fn delete_documents(&self, document_ids: &[&str]) -> Result<()> {
+        delete::delete_documents(self, document_ids)
     }
 
 }

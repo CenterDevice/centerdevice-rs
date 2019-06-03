@@ -18,6 +18,7 @@ pub trait CenterDevice {
     fn upload_file(&self, upload: Upload) -> Result<ID>;
     fn download_file(&self, download: Download) -> Result<u64>;
     fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64>;
+    fn delete_documents(&self, document_ids: &[&str]) -> Result<()>;
 }
 
 pub struct Client {}

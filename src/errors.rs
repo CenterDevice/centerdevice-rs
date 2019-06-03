@@ -1,3 +1,5 @@
+use crate::ID;
+
 use failure::{Backtrace, Context, Fail};
 use std::fmt;
 use reqwest::StatusCode;
@@ -25,6 +27,8 @@ pub enum ErrorKind {
     FailedToGetFilename,
     #[fail(display = "failed to get content length")]
     FailedToGetContentLength,
+    #[fail(display = "failed documents; ids='{:?}'", _0)]
+    FailedDocuments(Vec<ID>),
 }
 
 impl Clone for ErrorKind {
@@ -41,6 +45,7 @@ impl Clone for ErrorKind {
             FailedToMultipart => FailedToMultipart,
             FailedToGetFilename => FailedToGetFilename,
             FailedToGetContentLength => FailedToGetContentLength,
+            FailedDocuments(ref s) => FailedDocuments(s.clone()),
         }
     }
 }
