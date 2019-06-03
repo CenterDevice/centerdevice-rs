@@ -10,10 +10,10 @@ use serde::de::Visitor;
 use std::{fmt, io};
 use std::str::FromStr;
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::borrow::Cow;
-use reqwest::{Body, header};
-use std::io::Read;
+use reqwest::{Body, header, StatusCode, Response};
+use std::io::{Read, BufWriter};
 use std::fmt::Write;
 use crate::client::upload::internal::DocumentMetadata;
 use mime_multipart::{Node, Part, FilePart, write_multipart};
@@ -23,7 +23,7 @@ use std::ffi::OsStr;
 pub struct Download<'a> {
     document_id: ID,
     dir: &'a Path,
-    filename: Option<OsStr>,
+    filename: Option<&'a Path>,
 
 }
 
@@ -33,10 +33,10 @@ impl<'a> Download<'a> {
             document_id,
             dir,
             filename: None,
-        };
+        }
     }
 
-    pub fn filename(self, filename: OsStr) -> Download<'a> {
+    pub fn filename(self, filename: &'a Path) -> Download<'a> {
         Download {
             filename: Some(filename),
             ..self
@@ -45,59 +45,75 @@ impl<'a> Download<'a> {
 }
 
 
-pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<()> {
+pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<u64> {
     let url = format!("https://api.{}/v2/document/{}", authorized_client.base_url, download.document_id);
 
-    let result: Id = authorized_client.http_client
+    let mut response = authorized_client.http_client
         .get(&url)
         .bearer_auth(&authorized_client.token.access_token)
-        .header(header::CONTENT_TYPE, content_type.to_string().as_bytes())
-        .header(header::ACCEPT, mime!(Application / Json; Charset = Utf8).to_string().as_bytes())
-        .body(body)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?
-        .json()
+        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+
+    if response.status() != StatusCode::OK {
+        let status = response.status();
+        let body = response.text().unwrap_or_else(|_| "Failed to read body".to_string());
+        return Err(Error::from(ErrorKind::ApiCallError(status, body)))
+    }
+
+    let content_length = get_content_length(&response)?;
+    let filename = if let Some(f_path) = download.filename {
+        PathBuf::from(f_path)
+    } else {
+        let f_content_disposition= get_filename(&response)?;
+        PathBuf::from(f_content_disposition)
+    };
+    println!("Filename: {:#?}", filename);
+
+    let mut file_path = PathBuf::from(&download.dir);
+    file_path.push(filename);
+
+    let file = File::create(file_path.as_path())
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    let mut writer = BufWriter::new(file);
+    let len = response.copy_to(&mut writer)
+        .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+    assert_eq!(content_length, len);
 
-    Ok()
+    Ok(len)
 }
 
-fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<Node>> {
+fn get_filename(response: &Response) -> Result<String> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10 headers and mime 0.2
-    use hyper::header::{ContentType, Headers, ContentDisposition, DispositionType, DispositionParam};
+    use hyper::header::{ContentDisposition, DispositionParam, Header};
+    use std::str;
 
-    let mut nodes: Vec<Node> = Vec::with_capacity(2);
+    let header: Vec<_> = response.headers().get(header::CONTENT_DISPOSITION)
+        .ok_or(ErrorKind::FailedToGetFilename)?
+        .as_bytes()
+        .to_vec();
+    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&[header])
+        .map_err(|e| e.context(ErrorKind::FailedToGetFilename))?;
 
-    let json_bytes = serde_json::to_string(metadata)
-        .map_err(|e| e.context(ErrorKind::SerializeJsonFailed("doc-metadata".to_string())))?
-        .into_bytes();
-
-    let mut h = Headers::new();
-    h.set(ContentType(mime!(Application / Json)));
-    h.set(ContentDisposition {
-        disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![DispositionParam::Ext("name".to_string(), "metadata".to_string())],
-    });
-    nodes.push(Node::Part(Part {
-        headers: h,
-        body: json_bytes,
-    }));
-
-    let mut h = Headers::new();
-    h.set(ContentType(upload.mime_type.clone()));
-    h.set(ContentDisposition {
-        disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![DispositionParam::Ext("name".to_string(), "document".to_string()),
-                         DispositionParam::Ext("filename".to_string(), upload.filename.to_string())],
-    });
-    nodes.push(Node::File(FilePart::new(h, upload.path)));
-
-    Ok(nodes)
+    let mut filename = None;
+    for cp in &content_disposition.parameters {
+        if let DispositionParam::Filename(_, _, ref f) = *cp {
+            let decoded = str::from_utf8(f)
+                .map_err(|e| e.context(ErrorKind::FailedToGetFilename))?;
+            filename = Some(decoded);
+            break;
+        }
+    }
+    filename
+        .ok_or(Error::from(ErrorKind::FailedToGetFilename))
+        .map(|x| x.to_string())
 }
 
-// CenterDevice / Jersey does not accept special characters in boundary; thus, we build it ourselves.
-fn generate_boundary(seed: &[u8]) -> String {
-    let sha = ring::digest::digest(&ring::digest::SHA256, seed);
-    let sha_str = hex::encode(sha.as_ref());
-    format!("Boundary_{}", sha_str)
+fn get_content_length(response: &Response) -> Result<u64> {
+    let content_length = response.headers().get(header::CONTENT_LENGTH)
+        .ok_or(ErrorKind::FailedToGetContentLength)?
+        .to_str()
+        .map_err(|e| e.context(ErrorKind::FailedToGetContentLength))?
+        .parse::<u64>()
+        .map_err(|e| e.context(ErrorKind::FailedToGetContentLength))?;
+    Ok(content_length)
 }

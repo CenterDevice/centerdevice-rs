@@ -1,5 +1,6 @@
 use failure::{Backtrace, Context, Fail};
 use std::fmt;
+use reqwest::StatusCode;
 
 /// The error kind for errors that get returned in the crate
 #[derive(Eq, PartialEq, Debug, Fail)]
@@ -8,6 +9,8 @@ pub enum ErrorKind {
     NotYetImplemented(String),
     #[fail(display = "API call failed")]
     ApiCallFailed,
+    #[fail(display = "API call returned an error ({}), '{}'", _0, _1)]
+    ApiCallError(StatusCode, String),
     #[fail(display = "failed to read API call response")]
     ReadResponseFailed,
     #[fail(display = "failed to parse URL '{}'", _0)]
@@ -18,6 +21,10 @@ pub enum ErrorKind {
     FileSystemFailure,
     #[fail(display = "failed to create multipart form")]
     FailedToMultipart,
+    #[fail(display = "failed to get filename")]
+    FailedToGetFilename,
+    #[fail(display = "failed to get content length")]
+    FailedToGetContentLength,
 }
 
 impl Clone for ErrorKind {
@@ -26,11 +33,14 @@ impl Clone for ErrorKind {
         match *self {
             NotYetImplemented(ref s) => NotYetImplemented(s.clone()),
             ApiCallFailed => ApiCallFailed,
+            ApiCallError(ref status_code, ref body) => ApiCallError(status_code.clone(), body.clone()),
             ReadResponseFailed => ReadResponseFailed,
             ParseUrlFailed(ref s) => ParseUrlFailed(s.clone()),
             SerializeJsonFailed(ref s) => SerializeJsonFailed(s.clone()),
             FileSystemFailure => FileSystemFailure,
             FailedToMultipart => FailedToMultipart,
+            FailedToGetFilename => FailedToGetFilename,
+            FailedToGetContentLength => FailedToGetContentLength,
         }
     }
 }

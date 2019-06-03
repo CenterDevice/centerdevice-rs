@@ -8,6 +8,7 @@ pub use auth::{Code, CodeProvider, Token};
 use crate::{CenterDevice, ClientCredentials, ErrorKind, Result};
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
+use crate::client::download::Download;
 
 use failure::Fail;
 use mime;
@@ -72,6 +73,10 @@ impl CenterDevice for AuthorizedClient {
 
     fn upload_file(&self, upload: Upload) -> Result<ID> {
         upload::upload_file(&self, upload)
+    }
+
+    fn download_file(&self, download: Download) -> Result<u64> {
+        download::download_file(&self, download)
     }
 }
 

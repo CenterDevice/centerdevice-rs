@@ -8,6 +8,7 @@ use crate::errors::{ErrorKind, Result};
 use crate::client::{UnauthorizedClient, AuthorizedClient, ID};
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
+use crate::client::download::Download;
 
 use serde::Serialize;
 
@@ -15,6 +16,7 @@ pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
     fn search_documents(&self, search: Search) -> Result<SearchResult>;
     fn upload_file(&self, upload: Upload) -> Result<ID>;
+    fn download_file(&self, download: Download) -> Result<u64>;
 }
 
 pub struct Client {}

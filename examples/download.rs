@@ -1,7 +1,6 @@
 use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
 use centerdevice::client::download::Download;
 
-use mime_guess;
 use std::env;
 use std::path::Path;
 
@@ -38,10 +37,10 @@ fn main() {
     let download_dir_path = "/tmp";
     let path = Path::new(download_dir_path);
     let download = Download::new(document_id, path)
-        .filename("centerdevice_download")
-        .expect("Failed to create download");
+        .filename(Path::new("centerdevice_download"));
 
-    let result = client.download_file(download)
+    let result = client
+        .download_file(download)
         .expect("Download failed");
 
    println!("Result: {:#?}", result);
