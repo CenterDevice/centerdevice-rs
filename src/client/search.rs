@@ -3,7 +3,7 @@ use crate::errors::{ErrorKind, Error, Result};
 
 use failure::Fail;
 use mime;
-use reqwest::header;
+use reqwest::{header, Response, StatusCode};
 use serde::{self, Deserialize, Serialize, Deserializer};
 use serde::de::Visitor;
 use std::fmt;
@@ -186,12 +186,21 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
 
     let internal_search = internal::Search::from_search(search);
 
-    let result: SearchResult = authorized_client.http_client
+    let mut response: Response = authorized_client.http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .json(&internal_search)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?
+        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+
+    if response.status() != StatusCode::OK {
+        let status_code = response.status();
+        let body = response.text()
+            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+    }
+
+    let result = response
         .json()
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 

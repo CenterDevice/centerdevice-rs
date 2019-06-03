@@ -1,8 +1,9 @@
-use crate::{ClientCredentials, ErrorKind, Result};
+use crate::ClientCredentials;
+use crate::errors::{Error, ErrorKind, Result};
 use crate::client::AuthorizedClient;
 
 use failure::Fail;
-use reqwest::{IntoUrl, Url};
+use reqwest::{IntoUrl, Url, Response, StatusCode};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -100,16 +101,25 @@ pub fn exchange_code_for_token(
 
     let http_client = reqwest::Client::new();
 
-    let token = http_client
+    let mut response: Response = http_client
         .post(&token_endpoint)
         .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
         .form(&params)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?
+        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+
+    if response.status() != StatusCode::OK {
+        let status_code = response.status();
+        let body = response.text()
+            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+    }
+
+    let result = response
         .json()
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
-    Ok(token)
+    Ok(result)
 }
 
 pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Token> {

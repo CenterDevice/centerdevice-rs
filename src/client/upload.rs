@@ -1,5 +1,6 @@
 use crate::client::{self, AuthorizedClient};
 use crate::errors::{ErrorKind, Error, Result};
+use crate::client::upload::internal::DocumentMetadata;
 
 use failure::Fail;
 use hex;
@@ -12,10 +13,9 @@ use std::str::FromStr;
 use std::fs::File;
 use std::path::Path;
 use std::borrow::Cow;
-use reqwest::{Body, header};
+use reqwest::{Body, header, Response, StatusCode};
 use std::io::Read;
 use std::fmt::Write;
-use crate::client::upload::internal::DocumentMetadata;
 use mime_multipart::{Node, Part, FilePart, write_multipart};
 
 
@@ -160,14 +160,23 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
         .map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
 
-    let result: Id = authorized_client.http_client
+    let mut response: Response = authorized_client.http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .header(header::CONTENT_TYPE, content_type.to_string().as_bytes())
         .header(header::ACCEPT, mime!(Application / Json; Charset = Utf8).to_string().as_bytes())
         .body(body)
         .send()
-        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?
+        .map_err(|e| e.context(ErrorKind::ApiCallFailed))?;
+
+    if response.status() != StatusCode::CREATED {
+        let status_code = response.status();
+        let body = response.text()
+            .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
+        return Err(Error::from(ErrorKind::ApiCallError(status_code, body)));
+    }
+
+    let result: Id = response
         .json()
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
