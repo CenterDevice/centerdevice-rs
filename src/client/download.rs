@@ -100,12 +100,15 @@ fn do_download<T: WithProgress + ?Sized>(authorized_client: &AuthorizedClient, d
     let file = File::create(file_path.as_path())
         .map_err(|e| e.context(ErrorKind::ReadResponseFailed))?;
 
-    let mut writer = {
+    let mut writer: Write = if let Some(p) = progress {
+        p.setup(content_length as usize);
         let inner = BufWriter::new(file);
         ProgressWriter {
             progress,
             inner,
         }
+    } else {
+        BufWriter::new(file);
     };
 
     let len = response.copy_to(&mut writer)
