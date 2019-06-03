@@ -1,12 +1,14 @@
 pub mod auth;
+pub mod download;
 pub mod search;
 pub mod upload;
 
 pub use auth::{Code, CodeProvider, Token};
 
-use crate::{CenterDevice, ClientCredentials, ErrorKind, Result};
+use crate::{CenterDevice, ClientCredentials, ErrorKind, Result, WithProgress};
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
+use crate::client::download::Download;
 
 use failure::Fail;
 use mime;
@@ -66,12 +68,21 @@ impl CenterDevice for AuthorizedClient {
     }
 
     fn search_documents(&self, search: Search) -> Result<SearchResult> {
-        search::search_documents(&self, search)
+        search::search_documents(self, search)
     }
 
-    fn upload_file(&self, upload: Upload) -> Result<ID> {
+    fn upload_file(&self, upload: Upload) -> Result<ID>{
         upload::upload_file(&self, upload)
     }
+
+    fn download_file(&self, download: Download) -> Result<u64> {
+        download::download_file(self, download)
+    }
+
+    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64> {
+        download::download_file_with_progress(self, download, progress)
+    }
+
 }
 
 pub type ID = String;
