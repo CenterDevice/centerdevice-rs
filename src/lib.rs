@@ -1,6 +1,5 @@
 pub mod errors;
 pub mod client;
-pub mod old;
 
 pub use crate::client::auth::Token;
 
