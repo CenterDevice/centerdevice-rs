@@ -22,7 +22,7 @@ pub struct Client {}
 
 impl Client {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(base_url: String, client_credentials: ClientCredentials) -> UnauthorizedClient {
+    pub fn new<'a>(base_url: &'a str, client_credentials: ClientCredentials<'a>) -> UnauthorizedClient<'a> {
         UnauthorizedClient {
             base_url,
             client_credentials,
@@ -30,7 +30,7 @@ impl Client {
         }
     }
 
-    pub fn with_token(base_url: String, client_credentials: ClientCredentials, token: Token) -> AuthorizedClient {
+    pub fn with_token<'a>(base_url: &'a str, client_credentials: ClientCredentials<'a>, token: Token) -> AuthorizedClient<'a> {
         AuthorizedClient {
             base_url,
             client_credentials,
@@ -41,13 +41,13 @@ impl Client {
 }
 
 #[derive(Debug)]
-pub struct ClientCredentials {
-    client_id: String,
-    client_secret: String,
+pub struct ClientCredentials<'a> {
+    client_id: &'a str,
+    client_secret: &'a str,
 }
 
-impl ClientCredentials {
-    pub fn new(client_id: String, client_secret: String) -> ClientCredentials {
+impl<'a> ClientCredentials<'a> {
+    pub fn new(client_id: &'a str, client_secret: &'a str) -> ClientCredentials<'a> {
         ClientCredentials {
             client_id,
             client_secret,

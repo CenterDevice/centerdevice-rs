@@ -29,17 +29,20 @@ impl CodeProvider for MyCodeProvider {
 
 fn main() {
     let client_id =
-        env::var_os("CENTERDEVICE_CLIENT_ID").expect("Environment variable 'CENTERDEVICE_CLIENT_ID' is not set.");
+        env::var_os("CENTERDEVICE_CLIENT_ID")
+            .expect("Environment variable 'CENTERDEVICE_CLIENT_ID' is not set.")
+            .to_string_lossy().to_string();
     let client_secret = env::var_os("CENTERDEVICE_CLIENT_SECRET")
-        .expect("Environment variable 'CENTERDEVICE_CLIENT_SECRET' is not set.");
+        .expect("Environment variable 'CENTERDEVICE_CLIENT_SECRET' is not set.")
+        .to_string_lossy().to_string();
     let redirect_uri =
-        env::var_os("CENTERDEVICE_REDIRECT_URI").expect("Environment variable 'CENTERDEVICE_REDIRECT_URI' is not set.");
+        env::var_os("CENTERDEVICE_REDIRECT_URI").expect("Environment variable 'CENTERDEVICE_REDIRECT_URI' is not set.")
+        .to_string_lossy().to_string();
 
     let client_credentials = ClientCredentials::new(
-        client_id.to_string_lossy().to_string(),
-        client_secret.to_string_lossy().to_string(),
+        &client_id,
+        &client_secret,
     );
-    let redirect_uri = redirect_uri.to_string_lossy().to_string();
     let code_provider = MyCodeProvider {};
 
     let client = Client::new("centerdevice.de".to_string(), client_credentials)

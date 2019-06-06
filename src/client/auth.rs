@@ -79,7 +79,7 @@ fn get_code<T: CodeProvider>(
 ) -> Result<Code> {
     let auth_endpoint = format!("https://auth.{}/authorize", base_url);
     let params = [
-        ("client_id", client_credentials.client_id.as_str()),
+        ("client_id", client_credentials.client_id),
         ("redirect_uri", redirect_uri.as_str()),
         ("response_type", "code"),
     ];

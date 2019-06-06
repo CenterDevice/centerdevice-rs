@@ -15,25 +15,25 @@ use failure::Fail;
 use reqwest;
 use reqwest::IntoUrl;
 
-pub struct UnauthorizedClient {
-    pub(crate) base_url: String,
-    pub(crate) client_credentials: ClientCredentials,
+pub struct UnauthorizedClient<'a> {
+    pub(crate) base_url: &'a str,
+    pub(crate) client_credentials: ClientCredentials<'a>,
     pub(crate) http_client: reqwest::Client,
 }
 
-impl UnauthorizedClient {
+impl<'a, 'b: 'a> UnauthorizedClient<'b> {
     pub fn authorize_with_code_flow<T: IntoUrl + ToString + Clone, S: CodeProvider>(
         self,
         redirect_uri: T,
         code_provider: &S,
-    ) -> Result<AuthorizedClient> {
+    ) -> Result<AuthorizedClient<'a>> {
         let redirect_url = redirect_uri
             .clone()
             .into_url()
             .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
 
         let token =
-            auth::authorization_code_flow(&self.client_credentials, &self.base_url, &redirect_url, code_provider)?;
+            auth::authorization_code_flow(&self.client_credentials, self.base_url, &redirect_url, code_provider)?;
 
         let authorized_client = AuthorizedClient {
             base_url: self.base_url,
@@ -46,20 +46,20 @@ impl UnauthorizedClient {
     }
 }
 
-pub struct AuthorizedClient {
-    pub(crate) base_url: String,
-    pub(crate) client_credentials: ClientCredentials,
+pub struct AuthorizedClient<'a> {
+    pub(crate) base_url: &'a str,
+    pub(crate) client_credentials: ClientCredentials<'a>,
     pub(crate) token: Token,
     pub(crate) http_client: reqwest::Client,
 }
 
-impl AuthorizedClient {
+impl<'a> AuthorizedClient<'a> {
     pub fn token(&self) -> &Token {
         &self.token
     }
 }
 
-impl CenterDevice for AuthorizedClient {
+impl<'a> CenterDevice for AuthorizedClient<'a> {
     fn refresh_access_token(&self) -> Result<Token> {
         auth::refresh_access_token(self)
     }
