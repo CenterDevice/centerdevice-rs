@@ -18,6 +18,7 @@ pub enum NamedSearch {
     PublicCollections,
 }
 
+#[derive(Debug)]
 pub struct Upload<'a> {
     path: &'a Path,
     mime_type: Mime,
