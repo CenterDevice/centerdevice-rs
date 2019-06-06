@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+## [0.3.0] - 2019-06-06
+
+### Added
+
+* Exporting `reqwest::IntoUrl` because it's part of the public API in `auth::CodeProvider`.
+* `auth::Token` can be cloned.
+
+### Changed
+
+* `ClientCredentials` uses references
+* `UnauthorizedClient` and `AuthorizedClient` use references
+
+
 ## [0.2.0] - 2019-06-06
 
 ### Changed
@@ -22,7 +35,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/lukaspustina/ceres/compare/v0.2.0...0.3.0
 [0.2.0]: https://github.com/lukaspustina/ceres/compare/v0.1.0...0.2.0
 [0.1.0]: https://github.com/lukaspustina/ceres/compare/v0.0.1...0.1.0
 
