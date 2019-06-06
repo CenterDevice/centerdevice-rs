@@ -9,7 +9,7 @@ use serde::Deserialize;
 // Export reqwest's IntoUrl, because our public API (CodeProvider) requires users to implement this.
 pub use reqwest::IntoUrl;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Token {
     pub(crate) token_type: Option<String>,
     pub(crate) access_token: String,
