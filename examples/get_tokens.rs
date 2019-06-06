@@ -45,7 +45,7 @@ fn main() {
     );
     let code_provider = MyCodeProvider {};
 
-    let client = Client::new("centerdevice.de".to_string(), client_credentials)
+    let client = Client::new("centerdevice.de", client_credentials)
         .authorize_with_code_flow(&redirect_uri, &code_provider)
         .expect("API call failed.");
 
