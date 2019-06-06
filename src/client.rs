@@ -30,7 +30,7 @@ impl UnauthorizedClient {
         let redirect_url = redirect_uri
             .clone()
             .into_url()
-            .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed(redirect_uri.to_string())))?;
+            .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
 
         let token =
             auth::authorization_code_flow(&self.client_credentials, &self.base_url, &redirect_url, code_provider)?;

@@ -207,11 +207,11 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
 
     if response.status() != StatusCode::OK {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
         return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     }
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
 
     Ok(result)
 }

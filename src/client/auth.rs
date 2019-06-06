@@ -81,7 +81,7 @@ fn get_code<T: CodeProvider>(
         ("response_type", "code"),
     ];
     let auth_url = Url::parse_with_params(&auth_endpoint, &params)
-        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed(redirect_uri.to_string())))?;
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
 
     code_provider.get_code(auth_url)
 }
@@ -110,11 +110,11 @@ pub fn exchange_code_for_token(
 
     if response.status() != StatusCode::OK {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string())))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
         return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     }
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("parsing json".to_string()))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing json".to_string())))?;
 
     Ok(result)
 }
@@ -137,7 +137,7 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .json()
-        .map_err(|e| e.context(ErrorKind::HttpResponseReadFailed))?;
+        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing json".to_string())))?;
 
     Ok(token)
 }

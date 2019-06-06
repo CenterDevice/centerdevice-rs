@@ -31,8 +31,8 @@ pub struct Upload<'a> {
 
 impl<'a> Upload<'a> {
     pub fn new(path: &'a Path, mime_type: Mime) -> Result<Upload<'a>> {
-        let metadata = path.metadata().map_err(|e| e.context(ErrorKind::FileSystemFailure))?;
-        let filename = path.file_name().ok_or(ErrorKind::FileSystemFailure)?.to_string_lossy();
+        let metadata = path.metadata().map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("reading file metadata".to_string())))?;
+        let filename = path.file_name().ok_or(ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?.to_string_lossy();
 
         Ok(Upload {
             path,
@@ -143,11 +143,11 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
      * cf. https://github.com/seanmonstar/reqwest/issues/262
      */
     let mut body: Vec<u8> = Vec::new();
-    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| e.context(ErrorKind::FailedToMultipart))?;
+    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("creating multipart".to_string())))?;
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
-        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed("multipart".to_string())))?;
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("multipart".to_string())))?;
 
     let mut response: Response = authorized_client
         .http_client
@@ -164,11 +164,11 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
 
     if response.status() != StatusCode::CREATED {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
         return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     }
 
-    let result: Id = response.json().map_err(|e| e.context(ErrorKind::HttpResponseReadFailed("reading body".to_string()))?;
+    let result: Id = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
 
     Ok(result.id)
 }
@@ -180,7 +180,7 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
     let json_bytes = serde_json::to_string(metadata)
-        .map_err(|e| e.context(ErrorKind::HttpRequestPrepareFailed("serializing doc-metadata json".to_string())))?
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("serializing doc-metadata json".to_string())))?
         .into_bytes();
 
     let mut h = Headers::new();
