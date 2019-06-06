@@ -3,8 +3,11 @@ use crate::errors::{Error, ErrorKind, Result};
 use crate::ClientCredentials;
 
 use failure::Fail;
-use reqwest::{IntoUrl, Response, StatusCode, Url};
+use reqwest::{Response, StatusCode, Url};
 use serde::Deserialize;
+
+// Export reqwest's IntoUrl, because our public API (CodeProvider) requires users to implement this.
+pub use reqwest::IntoUrl;
 
 #[derive(Debug, Deserialize)]
 pub struct Token {
