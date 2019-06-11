@@ -1,22 +1,24 @@
-use crate::client::{AuthorizedClient, ID};
+use crate::client::{AuthorizedClient};
 use crate::errors::{Error, ErrorKind, Result};
 use crate::WithProgress;
 
 use failure::Fail;
+use log::debug;
 use reqwest::{header, Response, StatusCode};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
+#[derive(Debug)]
 pub struct Download<'a> {
-    document_id: ID,
+    document_id: &'a str,
     dir: &'a Path,
     filename: Option<&'a Path>,
 }
 
 impl<'a> Download<'a> {
-    pub fn new(document_id: ID, dir: &'a Path) -> Download<'a> {
+    pub fn new(document_id: &'a str, dir: &'a Path) -> Download<'a> {
         Download {
             document_id,
             dir,
@@ -92,7 +94,7 @@ fn do_download<T: WithProgress + ?Sized>(
         let f_content_disposition = get_filename(&response)?;
         PathBuf::from(f_content_disposition)
     };
-    println!("Filename: {:#?}", filename);
+    debug!("Filename: {:#?}", filename);
 
     let mut file_path = PathBuf::from(&download.dir);
     file_path.push(filename);

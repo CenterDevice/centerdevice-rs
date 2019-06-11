@@ -68,7 +68,7 @@ fn main() {
 
     let download_dir_path = "/tmp";
     let path = Path::new(download_dir_path);
-    let download = Download::new(document_id, path).filename(Path::new("centerdevice_download"));
+    let download = Download::new(&document_id, path).filename(Path::new("centerdevice_download"));
 
     let mut progress = Progress::new();
     let result = client

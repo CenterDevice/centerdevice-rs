@@ -32,7 +32,7 @@ fn main() {
 
     let download_dir_path = "/tmp";
     let path = Path::new(download_dir_path);
-    let download = Download::new(document_id, path);
+    let download = Download::new(&document_id, path);
 
     let result = client.download_file(download).expect("Download failed");
 
