@@ -24,6 +24,7 @@ name = "centerdevice"
 path = "src/lib.rs"
 
 [dependencies]
+chrono = "0.4"
 failure = "0.1"
 hex = "0.3"
 hyper = "0.10"

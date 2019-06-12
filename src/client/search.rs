@@ -1,6 +1,7 @@
 use crate::client::{AuthorizedClient, ID};
 use crate::errors::{Error, ErrorKind, Result};
 
+use chrono::{DateTime, FixedOffset};
 use failure::Fail;
 use mime;
 use reqwest::{Response, StatusCode};
@@ -146,9 +147,10 @@ pub struct Document {
     author: ID,
     // collections
     comments: usize,
-    #[serde(rename = "document-date")]
-    document_date: String,
-    // extended-metadata
+    #[serde(rename = "document-date", deserialize_with = "deserialize_rfc3339")]
+    document_date: DateTime<FixedOffset>,
+    #[serde(rename = "extended-metadata")]
+    extended_metadata: serde_json::Value,
     filename: String,
     hash: String,
     id: ID,
@@ -156,25 +158,47 @@ pub struct Document {
     mime_type: mime::Mime,
     owner: ID,
     pages: usize,
-    // representations
+    representations: Representations,
     score: Option<f64>,
     title: String,
-    #[serde(rename = "upload-date")]
-    upload_date: String,
+    #[serde(rename = "upload-date", deserialize_with = "deserialize_rfc3339")]
+    upload_date: DateTime<FixedOffset>,
     uploader: ID,
     // users
     version: usize,
-    #[serde(rename = "version-date")]
-    version_date: String,
+    #[serde(rename = "version-date", deserialize_with = "deserialize_rfc3339")]
+    version_date: DateTime<FixedOffset>,
+}
+
+#[derive(Deserialize, Debug)]
+struct Representations {
+    pdf: String,
+    fulltext: String,
+    jpg: String,
+    png: String,
+    mp4: String,
+}
+
+impl fmt::Display for Representations {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut reps = Vec::new();
+        if self.pdf == "yes" { reps.push("pdf"); }
+        if self.fulltext == "yes" { reps.push("fulltext"); }
+        if self.jpg == "yes" { reps.push("jpg"); }
+        if self.png == "yes" { reps.push("png"); }
+        if self.mp4 == "yes" { reps.push("mp4"); }
+
+        write!(f, "{:?}", reps)
+    }
 }
 
 fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime::Mime, D::Error>
-where
-    D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
 {
-    struct MechanismVisitor;
+    struct MimeVisitor;
 
-    impl<'a> Visitor<'a> for MechanismVisitor {
+    impl<'a> Visitor<'a> for MimeVisitor {
         type Value = mime::Mime;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -182,14 +206,38 @@ where
         }
 
         fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
-        where
-            E: serde::de::Error,
+            where
+                E: serde::de::Error,
         {
             mime::Mime::from_str(s).map_err(|_| serde::de::Error::custom("invalid mime type"))
         }
     }
 
-    deserializer.deserialize_string(MechanismVisitor)
+    deserializer.deserialize_string(MimeVisitor)
+}
+
+fn deserialize_rfc3339<'de, D>(deserializer: D) -> ::std::result::Result<DateTime<FixedOffset>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct Iso8601Visitor;
+
+    impl<'a> Visitor<'a> for Iso8601Visitor {
+        type Value = DateTime<FixedOffset>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("string with valid date time in RFC 3339 / ISO8601 format")
+        }
+
+        fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            DateTime:: parse_from_rfc3339(s).map_err(|_| serde::de::Error::custom("invalid date time"))
+        }
+    }
+
+    deserializer.deserialize_string(Iso8601Visitor)
 }
 
 pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) -> Result<SearchResult> {
