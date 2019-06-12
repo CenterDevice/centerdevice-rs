@@ -26,7 +26,7 @@ impl<'a> DeleteAction<'a> {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 struct FailedDocuments {
     #[serde(rename = "failed-documents")]
     failed_documents: Vec<ID>,

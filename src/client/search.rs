@@ -6,7 +6,7 @@ use failure::Fail;
 use mime;
 use reqwest::{Response, StatusCode};
 use serde::de::Visitor;
-use serde::{self, Deserialize, Deserializer};
+use serde::{self, Serialize, Serializer, Deserialize, Deserializer};
 use std::fmt;
 use std::str::FromStr;
 
@@ -137,41 +137,41 @@ pub(crate) mod internal {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SearchResult {
     pub documents: Vec<Document>,
     pub hits: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Document {
     pub author: ID,
     // collections
     pub comments: usize,
-    #[serde(rename = "document-date", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "document-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
     pub document_date: DateTime<FixedOffset>,
     #[serde(rename = "extended-metadata")]
     pub extended_metadata: serde_json::Value,
     pub filename: String,
     pub hash: String,
     pub id: ID,
-    #[serde(rename = "mimetype", deserialize_with = "deserialize_mime_type")]
+    #[serde(rename = "mimetype", serialize_with = "serialize_mime_type", deserialize_with = "deserialize_mime_type")]
     pub mime_type: mime::Mime,
     pub owner: ID,
     pub pages: usize,
     pub representations: Representations,
     pub score: Option<f64>,
     pub title: String,
-    #[serde(rename = "upload-date", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "upload-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
     pub upload_date: DateTime<FixedOffset>,
     pub uploader: ID,
     // users
     pub version: usize,
-    #[serde(rename = "version-date", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "version-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
     pub version_date: DateTime<FixedOffset>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Representations {
     pub pdf: String,
     pub fulltext: String,
@@ -192,6 +192,14 @@ impl fmt::Display for Representations {
         write!(f, "{:?}", reps)
     }
 }
+
+fn serialize_mime_type<S>(mime_type: &mime::Mime, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer {
+    let s = mime_type.to_string();
+    serializer.serialize_str(&s)
+}
+
 
 fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime::Mime, D::Error>
     where
@@ -217,9 +225,16 @@ fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime:
     deserializer.deserialize_string(MimeVisitor)
 }
 
+fn serialize_rfc3339<S>(date_time: &DateTime<FixedOffset>, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer {
+    let s = date_time.to_rfc3339();
+    serializer.serialize_str(&s)
+}
+
 fn deserialize_rfc3339<'de, D>(deserializer: D) -> ::std::result::Result<DateTime<FixedOffset>, D::Error>
-where
-    D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
 {
     struct Iso8601Visitor;
 
@@ -231,10 +246,10 @@ where
         }
 
         fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
-        where
-            E: serde::de::Error,
+            where
+                E: serde::de::Error,
         {
-            DateTime:: parse_from_rfc3339(s).map_err(|_| serde::de::Error::custom("invalid date time"))
+            DateTime::parse_from_rfc3339(s).map_err(|_| serde::de::Error::custom("invalid date time"))
         }
     }
 
