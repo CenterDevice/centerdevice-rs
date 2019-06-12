@@ -139,45 +139,45 @@ pub(crate) mod internal {
 
 #[derive(Debug, Deserialize)]
 pub struct SearchResult {
-    documents: Vec<Document>,
-    hits: usize,
+    pub documents: Vec<Document>,
+    pub hits: usize,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Document {
-    author: ID,
+    pub author: ID,
     // collections
-    comments: usize,
+    pub comments: usize,
     #[serde(rename = "document-date", deserialize_with = "deserialize_rfc3339")]
-    document_date: DateTime<FixedOffset>,
+    pub document_date: DateTime<FixedOffset>,
     #[serde(rename = "extended-metadata")]
-    extended_metadata: serde_json::Value,
-    filename: String,
-    hash: String,
-    id: ID,
+    pub extended_metadata: serde_json::Value,
+    pub filename: String,
+    pub hash: String,
+    pub id: ID,
     #[serde(rename = "mimetype", deserialize_with = "deserialize_mime_type")]
-    mime_type: mime::Mime,
-    owner: ID,
-    pages: usize,
-    representations: Representations,
-    score: Option<f64>,
-    title: String,
+    pub mime_type: mime::Mime,
+    pub owner: ID,
+    pub pages: usize,
+    pub representations: Representations,
+    pub score: Option<f64>,
+    pub title: String,
     #[serde(rename = "upload-date", deserialize_with = "deserialize_rfc3339")]
-    upload_date: DateTime<FixedOffset>,
-    uploader: ID,
+    pub upload_date: DateTime<FixedOffset>,
+    pub uploader: ID,
     // users
-    version: usize,
+    pub version: usize,
     #[serde(rename = "version-date", deserialize_with = "deserialize_rfc3339")]
-    version_date: DateTime<FixedOffset>,
+    pub version_date: DateTime<FixedOffset>,
 }
 
 #[derive(Deserialize, Debug)]
-struct Representations {
-    pdf: String,
-    fulltext: String,
-    jpg: String,
-    png: String,
-    mp4: String,
+pub struct Representations {
+    pub pdf: String,
+    pub fulltext: String,
+    pub jpg: String,
+    pub png: String,
+    pub mp4: String,
 }
 
 impl fmt::Display for Representations {

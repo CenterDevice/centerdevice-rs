@@ -12,12 +12,6 @@ use serde::{self, Deserialize};
 use std::borrow::Cow;
 use std::path::Path;
 
-#[derive(PartialEq, Debug)]
-pub enum NamedSearch {
-    None,
-    PublicCollections,
-}
-
 #[derive(Debug)]
 pub struct Upload<'a> {
     path: &'a Path,
