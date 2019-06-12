@@ -16,6 +16,7 @@ pub enum NamedSearch {
     PublicCollections,
 }
 
+#[derive(Debug)]
 pub struct Search<'a> {
     filenames: Option<Vec<&'a str>>,
     tags: Option<Vec<&'a str>>,
