@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+## [0.3.3] - 2019-06-13
+
+### Changed
+
+* Enhances search results by datetime, representations, and extented-metadata
+* `Search` derives `Debug`
+
+
 ## [0.3.2] - 2019-06-11
 
 ### Changed
@@ -50,7 +58,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/lukaspustina/ceres/compare/v0.3.2...0.3.3
 [0.3.2]: https://github.com/lukaspustina/ceres/compare/v0.3.1...0.3.2
 [0.3.1]: https://github.com/lukaspustina/ceres/compare/v0.3.0...0.3.1
 [0.3.0]: https://github.com/lukaspustina/ceres/compare/v0.2.0...0.3.0
