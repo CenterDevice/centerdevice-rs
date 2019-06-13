@@ -1,5 +1,5 @@
-use crate::client::{AuthorizedClient, ID};
-use crate::errors::{Error, ErrorKind, Result};
+use crate::client::{AuthorizedClient, ID, GeneralErrHandler};
+use crate::errors::{ErrorKind, Result};
 
 use chrono::{DateTime, FixedOffset};
 use failure::Fail;
@@ -267,15 +267,10 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
         .bearer_auth(&authorized_client.token.access_token)
         .json(&internal_search)
         .send()
-        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
+        .general_err_handler(StatusCode::OK)?;
 
-    if response.status() != StatusCode::OK {
-        let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
-        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
-    }
-
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
 
     Ok(result)
 }

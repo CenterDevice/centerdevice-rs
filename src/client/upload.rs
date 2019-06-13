@@ -1,6 +1,6 @@
+use crate::client::{self, AuthorizedClient, GeneralErrHandler};
 use crate::client::upload::internal::DocumentMetadata;
-use crate::client::{self, AuthorizedClient};
-use crate::errors::{Error, ErrorKind, Result};
+use crate::errors::{ErrorKind, Result};
 
 use failure::Fail;
 use hex;
@@ -155,15 +155,10 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         )
         .body(body)
         .send()
-        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
+        .general_err_handler(StatusCode::CREATED)?;
 
-    if response.status() != StatusCode::CREATED {
-        let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
-        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
-    }
-
-    let result: Id = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
+    let result: Id = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
 
     Ok(result.id)
 }

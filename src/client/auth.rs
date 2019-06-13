@@ -1,5 +1,5 @@
-use crate::client::AuthorizedClient;
-use crate::errors::{Error, ErrorKind, Result};
+use crate::client::{AuthorizedClient, GeneralErrHandler};
+use crate::errors::{ErrorKind, Result};
 use crate::ClientCredentials;
 
 use failure::Fail;
@@ -109,15 +109,10 @@ pub fn exchange_code_for_token(
         .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
         .form(&params)
         .send()
-        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
+        .general_err_handler(StatusCode::OK)?;
 
-    if response.status() != StatusCode::OK {
-        let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
-        return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
-    }
-
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing json".to_string())))?;
+    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "parsing json".to_string())))?;
 
     Ok(result)
 }
@@ -129,7 +124,7 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         ("refresh_token", &authorized_client.token.refresh_token),
     ];
 
-    let token = authorized_client
+    let mut response = authorized_client
         .http_client
         .post(&url)
         .basic_auth(
@@ -139,8 +134,12 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         .form(&params)
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
+        .general_err_handler(StatusCode::OK)?;
+
+    let status_code = response.status();
+    let token = response
         .json()
-        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing json".to_string())))?;
+        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing json".to_string())))?;
 
     Ok(token)
 }

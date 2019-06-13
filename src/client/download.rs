@@ -1,4 +1,4 @@
-use crate::client::{AuthorizedClient};
+use crate::client::{AuthorizedClient, GeneralErrHandler};
 use crate::errors::{Error, ErrorKind, Result};
 use crate::WithProgress;
 
@@ -79,14 +79,10 @@ fn do_download<T: WithProgress + ?Sized>(
         .get(&url)
         .bearer_auth(&authorized_client.token.access_token)
         .send()
-        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
+        .general_err_handler(StatusCode::OK)?;
 
-    if response.status() != StatusCode::OK {
-        let status = response.status();
-        let body = response.text().unwrap_or_else(|_| "Failed to read body".to_string());
-        return Err(Error::from(ErrorKind::ApiCallFailed(status, body)));
-    }
-
+    let status_code = response.status();
     let content_length = get_content_length(&response)?;
     let filename = if let Some(f_path) = download.filename {
         PathBuf::from(f_path)
@@ -99,7 +95,7 @@ fn do_download<T: WithProgress + ?Sized>(
     let mut file_path = PathBuf::from(&download.dir);
     file_path.push(filename);
 
-    let file = File::create(file_path.as_path()).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("creating file".to_string())))?;
+    let file = File::create(file_path.as_path()).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "creating file".to_string())))?;
 
     let mut writer = {
         if let Some(ref mut p) = progress {
@@ -111,7 +107,7 @@ fn do_download<T: WithProgress + ?Sized>(
 
     let len = response
         .copy_to(&mut writer)
-        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("reading body".to_string())))?;
+        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "reading body".to_string())))?;
     assert_eq!(content_length, len);
 
     if let Some(ref mut p) = writer.progress {
@@ -126,36 +122,39 @@ fn get_filename(response: &Response) -> Result<String> {
     use hyper::header::{ContentDisposition, DispositionParam, Header};
     use std::str;
 
+    let status_code = response.status();
+
     let header: Vec<_> = response
         .headers()
         .get(header::CONTENT_DISPOSITION)
-        .ok_or(ErrorKind::FailedToProcessHttpResponse("content disposition header".to_string()))?
+        .ok_or(ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?
         .as_bytes()
         .to_vec();
     let content_disposition: ContentDisposition =
-        ContentDisposition::parse_header(&[header]).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing content disposition header".to_string())))?;
+        ContentDisposition::parse_header(&[header]).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing content disposition header".to_string())))?;
 
     let mut filename = None;
     for cp in &content_disposition.parameters {
         if let DispositionParam::Filename(_, _, ref f) = *cp {
-            let decoded = str::from_utf8(f).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing content disposition filename".to_string())))?;
+            let decoded = str::from_utf8(f).map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing content disposition filename".to_string())))?;
             filename = Some(decoded);
             break;
         }
     }
     filename
-        .ok_or_else(|| Error::from(ErrorKind::FailedToProcessHttpResponse("content disposition header filename not found".to_string())))
+        .ok_or_else(|| Error::from(ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header filename not found".to_string())))
         .map(ToString::to_string)
 }
 
 fn get_content_length(response: &Response) -> Result<u64> {
+    let status_code = response.status();
     let content_length = response
         .headers()
         .get(header::CONTENT_LENGTH)
-        .ok_or(ErrorKind::FailedToProcessHttpResponse("content length header".to_string()))?
+        .ok_or(ErrorKind::FailedToProcessHttpResponse(status_code, "content length header".to_string()))?
         .to_str()
-        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing content length header".to_string())))?
+        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing content length header".to_string())))?
         .parse::<u64>()
-        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse("parsing content length".to_string())))?;
+        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing content length".to_string())))?;
     Ok(content_length)
 }

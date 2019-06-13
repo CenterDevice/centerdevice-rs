@@ -7,7 +7,7 @@ use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
 use crate::client::{AuthorizedClient, UnauthorizedClient, ID};
-use crate::errors::{ErrorKind, Result};
+use crate::errors::Result;
 
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
