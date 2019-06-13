@@ -6,6 +6,7 @@ pub use crate::client::auth::Token;
 use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
+use crate::client::users::{UsersQuery, UsersResult};
 use crate::client::{AuthorizedClient, UnauthorizedClient, ID};
 use crate::errors::Result;
 
@@ -16,6 +17,7 @@ pub trait CenterDevice {
     fn download_file(&self, download: Download) -> Result<u64>;
     fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64>;
     fn delete_documents(&self, document_ids: &[&str]) -> Result<()>;
+    fn search_users(&self, users_query: UsersQuery) -> Result<UsersResult>;
 }
 
 pub struct Client {}
