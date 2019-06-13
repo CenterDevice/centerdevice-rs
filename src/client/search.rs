@@ -1,14 +1,15 @@
-use crate::client::{AuthorizedClient, ID, GeneralErrHandler};
-use crate::errors::{ErrorKind, Result};
+use crate::{
+    errors::{ErrorKind, Result},
+    client::{AuthorizedClient, ID, GeneralErrHandler},
+    utils::{deserialize, serialize},
+};
 
 use chrono::{DateTime, FixedOffset};
 use failure::Fail;
 use mime;
 use reqwest::{Response, StatusCode};
-use serde::de::Visitor;
-use serde::{self, Serialize, Serializer, Deserialize, Deserializer};
+use serde::{self, Serialize, Deserialize};
 use std::fmt;
-use std::str::FromStr;
 
 #[derive(PartialEq, Debug)]
 pub enum NamedSearch {
@@ -148,26 +149,26 @@ pub struct Document {
     pub author: ID,
     // collections
     pub comments: usize,
-    #[serde(rename = "document-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "document-date")]
     pub document_date: DateTime<FixedOffset>,
     #[serde(rename = "extended-metadata")]
     pub extended_metadata: serde_json::Value,
     pub filename: String,
     pub hash: String,
     pub id: ID,
-    #[serde(rename = "mimetype", serialize_with = "serialize_mime_type", deserialize_with = "deserialize_mime_type")]
+    #[serde(rename = "mimetype", serialize_with = "serialize::mime_type", deserialize_with = "deserialize::mime_type")]
     pub mime_type: mime::Mime,
     pub owner: ID,
     pub pages: Option<usize>,
     pub representations: Representations,
     pub score: Option<f64>,
     pub title: String,
-    #[serde(rename = "upload-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "upload-date")]
     pub upload_date: DateTime<FixedOffset>,
     pub uploader: ID,
     // users
     pub version: usize,
-    #[serde(rename = "version-date", serialize_with = "serialize_rfc3339", deserialize_with = "deserialize_rfc3339")]
+    #[serde(rename = "version-date")]
     pub version_date: DateTime<FixedOffset>,
 }
 
@@ -193,68 +194,6 @@ impl fmt::Display for Representations {
     }
 }
 
-fn serialize_mime_type<S>(mime_type: &mime::Mime, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
-    where
-        S: Serializer {
-    let s = mime_type.to_string();
-    serializer.serialize_str(&s)
-}
-
-
-fn deserialize_mime_type<'de, D>(deserializer: D) -> ::std::result::Result<mime::Mime, D::Error>
-    where
-        D: Deserializer<'de>,
-{
-    struct MimeVisitor;
-
-    impl<'a> Visitor<'a> for MimeVisitor {
-        type Value = mime::Mime;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("string with valid mime type")
-        }
-
-        fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-        {
-            mime::Mime::from_str(s).map_err(|_| serde::de::Error::custom("invalid mime type"))
-        }
-    }
-
-    deserializer.deserialize_string(MimeVisitor)
-}
-
-fn serialize_rfc3339<S>(date_time: &DateTime<FixedOffset>, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
-    where
-        S: Serializer {
-    let s = date_time.to_rfc3339();
-    serializer.serialize_str(&s)
-}
-
-fn deserialize_rfc3339<'de, D>(deserializer: D) -> ::std::result::Result<DateTime<FixedOffset>, D::Error>
-    where
-        D: Deserializer<'de>,
-{
-    struct Iso8601Visitor;
-
-    impl<'a> Visitor<'a> for Iso8601Visitor {
-        type Value = DateTime<FixedOffset>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("string with valid date time in RFC 3339 / ISO8601 format")
-        }
-
-        fn visit_str<E>(self, s: &str) -> ::std::result::Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-        {
-            DateTime::parse_from_rfc3339(s).map_err(|_| serde::de::Error::custom("invalid date time"))
-        }
-    }
-
-    deserializer.deserialize_string(Iso8601Visitor)
-}
 
 pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) -> Result<SearchResult> {
     let url = format!("https://api.{}/v2/documents", authorized_client.base_url);

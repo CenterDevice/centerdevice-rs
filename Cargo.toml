@@ -24,7 +24,7 @@ name = "centerdevice"
 path = "src/lib.rs"
 
 [dependencies]
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 failure = "0.1"
 hex = "0.3"
 hyper = "0.10"

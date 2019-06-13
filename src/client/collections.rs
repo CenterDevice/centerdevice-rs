@@ -1,10 +1,14 @@
-use crate::client::{AuthorizedClient, GeneralErrHandler};
-use crate::errors::{ErrorKind, Result};
+use crate::{
+    client::{AuthorizedClient, GeneralErrHandler, ID},
+    errors::{ErrorKind, Result},
+    utils::{deserialize, serialize}
+};
 
 use failure::Fail;
 use reqwest::{Response, StatusCode};
 use serde::{self, Serialize, Deserialize};
 use std::string::ToString;
+use chrono::{DateTime, FixedOffset};
 
 
 #[derive(Serialize, Debug)]
@@ -55,6 +59,12 @@ pub struct Collection {
     pub id: String,
     pub public: bool,
     pub name: String,
+    pub owner: ID,
+    pub auditing: bool,
+    #[serde(rename = "archived-date")]
+    pub archived_date: Option<DateTime<FixedOffset>>,
+    #[serde(rename = "has-folders")]
+    pub has_folders: Option<bool>,
 }
 
 pub fn search_collections(authorized_client: &AuthorizedClient, collection_query: CollectionsQuery) -> Result<CollectionsResult> {
