@@ -140,7 +140,8 @@ pub(crate) mod internal {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SearchResult {
-    pub documents: Option<Vec<Document>>,
+    #[serde(default)]
+    pub documents: Vec<Document>,
     pub hits: usize,
 }
 

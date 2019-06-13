@@ -1,7 +1,6 @@
 use crate::{
     client::{AuthorizedClient, GeneralErrHandler, ID},
     errors::{ErrorKind, Result},
-    utils::{deserialize, serialize}
 };
 
 use failure::Fail;
