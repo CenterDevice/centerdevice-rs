@@ -21,6 +21,7 @@ release-bump:
 
 publish:
 	git push && git push --tags
+	cargo publish
 
 clippy:
 	cargo clippy
