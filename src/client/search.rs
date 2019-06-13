@@ -139,7 +139,7 @@ pub(crate) mod internal {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SearchResult {
-    pub documents: Vec<Document>,
+    pub documents: Option<Vec<Document>>,
     pub hits: usize,
 }
 
@@ -158,7 +158,7 @@ pub struct Document {
     #[serde(rename = "mimetype", serialize_with = "serialize_mime_type", deserialize_with = "deserialize_mime_type")]
     pub mime_type: mime::Mime,
     pub owner: ID,
-    pub pages: usize,
+    pub pages: Option<usize>,
     pub representations: Representations,
     pub score: Option<f64>,
     pub title: String,
