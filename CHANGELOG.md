@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+
+## [0.3.8] - 2019-06-13
+
 ### Add
 
 * Users listing
@@ -15,7 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 * search documents returns empty `Vec` instead of None in case no documents have been found.
 
 
-## [0.3.7] - 2019-06-14
+## [0.3.7] - 2019-06-13
 
 ### Add
 
@@ -26,21 +29,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 * Optional fields in search results
 
 
-## [0.3.6] - 2019-06-13
+## [0.3.6] - 2019-06-12
 
 ### Add
 
 * Serialization to search and delete results
 
 
-## [0.3.5] - 2019-06-13
+## [0.3.5] - 2019-06-12
 
 ### Changed
 
 * struct visibilities changed
 
 
-## [0.3.4] - 2019-06-13
+## [0.3.4] - 2019-06-12
 
 ### Changed
 
@@ -92,7 +95,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.7...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.8...HEAD
+[0.3.8]: https://github.com/lukaspustina/ceres/compare/v0.3.7...0.3.8
 [0.3.7]: https://github.com/lukaspustina/ceres/compare/v0.3.6...0.3.7
 [0.3.6]: https://github.com/lukaspustina/ceres/compare/v0.3.5...0.3.6
 [0.3.5]: https://github.com/lukaspustina/ceres/compare/v0.3.4...0.3.5
