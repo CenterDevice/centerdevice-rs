@@ -3,6 +3,7 @@ pub mod errors;
 
 pub use crate::client::auth::Token;
 
+use crate::client::collections::{CollectionsQuery, CollectionsResult};
 use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
@@ -18,6 +19,7 @@ pub trait CenterDevice {
     fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64>;
     fn delete_documents(&self, document_ids: &[&str]) -> Result<()>;
     fn search_users(&self, users_query: UsersQuery) -> Result<UsersResult>;
+    fn search_collections(&self, collections_query: CollectionsQuery) -> Result<CollectionsResult>;
 }
 
 pub struct Client {}

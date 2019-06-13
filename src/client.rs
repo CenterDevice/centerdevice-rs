@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod collections;
 pub mod delete;
 pub mod download;
 pub mod search;
@@ -8,6 +9,7 @@ pub mod users;
 pub use auth::{Code, CodeProvider, Token};
 
 use crate::{CenterDevice, ClientCredentials, WithProgress};
+use crate::client::collections::{CollectionsQuery, CollectionsResult};
 use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
@@ -88,6 +90,10 @@ impl<'a> CenterDevice for AuthorizedClient<'a> {
 
     fn search_users(&self, users_query: UsersQuery) -> Result<UsersResult> {
         users::search_users(self, users_query)
+    }
+
+    fn search_collections(&self, collections_query: CollectionsQuery) -> Result<CollectionsResult> {
+        collections::search_collections(self, collections_query)
     }
 }
 
