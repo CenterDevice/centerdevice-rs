@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+## [0.3.9] - 2019-06-12
+
 ### Fixes
 * Collection results in-accessible because of private visibility
 * Send parameters as query instead of form parameters in collection search
@@ -99,7 +101,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.8...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.9...HEAD
+[0.3.9]: https://github.com/lukaspustina/ceres/compare/v0.3.8...0.3.9
 [0.3.8]: https://github.com/lukaspustina/ceres/compare/v0.3.7...0.3.8
 [0.3.7]: https://github.com/lukaspustina/ceres/compare/v0.3.6...0.3.7
 [0.3.6]: https://github.com/lukaspustina/ceres/compare/v0.3.5...0.3.6
