@@ -50,7 +50,7 @@ impl<'a> CollectionsQuery<'a> {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CollectionsResult {
-    collections: Vec<Collection>
+    pub collections: Vec<Collection>
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -85,7 +85,7 @@ pub fn search_collections(authorized_client: &AuthorizedClient, collection_query
     let mut response: Response = authorized_client
         .http_client
         .get(&url)
-        .form(&params)
+        .query(&params)
         .bearer_auth(&authorized_client.token.access_token)
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?

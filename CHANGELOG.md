@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+### Fixes
+* Collection results in-accessible because of private visibility
+* Send parameters as query instead of form parameters in collection search
+
 ## [0.3.8] - 2019-06-13
 
 ### Add
