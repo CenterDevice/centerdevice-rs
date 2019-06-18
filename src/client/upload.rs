@@ -28,7 +28,7 @@ pub struct Upload<'a> {
 impl<'a> Upload<'a> {
     pub fn new(path: &'a Path, mime_type: Mime) -> Result<Upload<'a>> {
         let metadata = path.metadata().map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("reading file metadata".to_string())))?;
-        let filename = path.file_name().ok_or(ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?.to_string_lossy();
+        let filename = path.file_name().ok_or_else(|| ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?.to_string_lossy();
 
         Ok(Upload {
             path,

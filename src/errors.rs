@@ -36,7 +36,7 @@ impl Clone for ErrorKind {
             ApiCallFailed(ref status_code, ref body) => ApiCallFailed(*status_code, body.clone()),
             ApiCallFailedInvalidToken(ref status_code) => ApiCallFailedInvalidToken(*status_code),
             ApiCallFailedTooManyRequests(ref status_code) => ApiCallFailedTooManyRequests(*status_code),
-            FailedToProcessHttpResponse(ref s, ref b) => FailedToProcessHttpResponse(s.clone(), b.clone()),
+            FailedToProcessHttpResponse(ref status_code, ref body) => FailedToProcessHttpResponse(*status_code, body.clone()),
             FailedToPrepareHttpRequest(ref s) => FailedToPrepareHttpRequest(s.clone()),
             FailedDocuments(ref s) => FailedDocuments(s.clone()),
         }

@@ -131,7 +131,7 @@ fn get_filename(response: &Response) -> Result<String> {
     let header: Vec<_> = response
         .headers()
         .get(header::CONTENT_DISPOSITION)
-        .ok_or(ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?
+        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?
         .as_bytes()
         .to_vec();
     let content_disposition: ContentDisposition =
@@ -155,7 +155,7 @@ fn get_content_length(response: &Response) -> Result<u64> {
     let content_length = response
         .headers()
         .get(header::CONTENT_LENGTH)
-        .ok_or(ErrorKind::FailedToProcessHttpResponse(status_code, "content length header".to_string()))?
+        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content length header".to_string()))?
         .to_str()
         .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing content length header".to_string())))?
         .parse::<u64>()

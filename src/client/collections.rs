@@ -18,13 +18,19 @@ pub struct CollectionsQuery<'a> {
     ids: Option<Vec<&'a str>>,
 }
 
-impl<'a> CollectionsQuery<'a> {
-    pub fn new() -> Self {
+impl<'a> Default for CollectionsQuery<'a> {
+    fn default() -> Self {
         CollectionsQuery {
             include_public: false,
             name: None,
             ids: None,
         }
+    }
+}
+
+impl<'a> CollectionsQuery<'a> {
+    pub fn new() -> Self {
+        Default::default()
     }
 
     pub fn include_public(self) -> CollectionsQuery<'a> {
