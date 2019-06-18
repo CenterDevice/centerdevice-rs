@@ -1,10 +1,10 @@
-use crate::client::{self, AuthorizedClient, GeneralErrHandler};
 use crate::client::upload::internal::DocumentMetadata;
+use crate::client::{self, AuthorizedClient, GeneralErrHandler};
 use crate::errors::{ErrorKind, Result};
 
 use failure::Fail;
-use log::debug;
 use hex;
+use log::debug;
 use mime::*;
 use mime_multipart::{write_multipart, FilePart, Node, Part};
 use reqwest::{header, Response, StatusCode};
@@ -27,8 +27,15 @@ pub struct Upload<'a> {
 
 impl<'a> Upload<'a> {
     pub fn new(path: &'a Path, mime_type: Mime) -> Result<Upload<'a>> {
-        let metadata = path.metadata().map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("reading file metadata".to_string())))?;
-        let filename = path.file_name().ok_or_else(|| ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?.to_string_lossy();
+        let metadata = path.metadata().map_err(|e| {
+            e.context(ErrorKind::FailedToPrepareHttpRequest(
+                "reading file metadata".to_string(),
+            ))
+        })?;
+        let filename = path
+            .file_name()
+            .ok_or_else(|| ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?
+            .to_string_lossy();
 
         Ok(Upload {
             path,
@@ -139,7 +146,8 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
      * cf. https://github.com/seanmonstar/reqwest/issues/262
      */
     let mut body: Vec<u8> = Vec::new();
-    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("creating multipart".to_string())))?;
+    let nodes = create_multipart(&document_metadata, &upload)
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("creating multipart".to_string())))?;
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
@@ -163,7 +171,12 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         .general_err_handler(StatusCode::CREATED)?;
     debug!("Response: '{:#?}'", response);
 
-    let result: Id = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
+    let result: Id = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            response.status(),
+            "reading body".to_string(),
+        ))
+    })?;
 
     Ok(result.id)
 }
@@ -175,7 +188,11 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
     let json_bytes = serde_json::to_string(metadata)
-        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("serializing doc-metadata json".to_string())))?
+        .map_err(|e| {
+            e.context(ErrorKind::FailedToPrepareHttpRequest(
+                "serializing doc-metadata json".to_string(),
+            ))
+        })?
         .into_bytes();
 
     let mut h = Headers::new();

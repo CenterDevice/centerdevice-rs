@@ -45,14 +45,17 @@ pub fn delete_documents(authorized_client: &AuthorizedClient, document_ids: &[&s
         .json(&delete_action);
     debug!("Request: '{:#?}'", request);
 
-    let mut response = request
-        .send()
-        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+    let mut response = request.send().map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
     debug!("Response: '{:#?}'", response);
 
     if response.status() != StatusCode::NO_CONTENT {
         let status_code = response.status();
-        let body = response.text().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "reading body".to_string())))?;
+        let body = response.text().map_err(|e| {
+            e.context(ErrorKind::FailedToProcessHttpResponse(
+                status_code,
+                "reading body".to_string(),
+            ))
+        })?;
         return Err(Error::from(ErrorKind::ApiCallFailed(status_code, body)));
     } else {
         let failed_documents = response.json::<FailedDocuments>();

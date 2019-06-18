@@ -1,12 +1,11 @@
-use crate::client::{AuthorizedClient, ID, GeneralErrHandler};
+use crate::client::{AuthorizedClient, GeneralErrHandler, ID};
 use crate::errors::{ErrorKind, Result};
 
 use failure::Fail;
 use log::debug;
 use reqwest::{Response, StatusCode};
-use serde::{self, Serialize, Deserialize};
+use serde::{self, Deserialize, Serialize};
 use std::string::ToString;
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UsersQuery {
@@ -52,9 +51,7 @@ pub enum UserRole {
 
 pub fn search_users(authorized_client: &AuthorizedClient, users_query: UsersQuery) -> Result<UsersResult> {
     let url = format!("https://api.{}/v2/users", authorized_client.base_url);
-    let params = [
-        ("all", &users_query.all.to_string()),
-    ];
+    let params = [("all", &users_query.all.to_string())];
 
     let request = authorized_client
         .http_client
@@ -69,7 +66,12 @@ pub fn search_users(authorized_client: &AuthorizedClient, users_query: UsersQuer
         .general_err_handler(StatusCode::OK)?;
     debug!("Response: '{:#?}'", response);
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
+    let result = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            response.status(),
+            "reading body".to_string(),
+        ))
+    })?;
 
     Ok(result)
 }

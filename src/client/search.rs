@@ -1,6 +1,6 @@
 use crate::{
+    client::{AuthorizedClient, GeneralErrHandler, ID},
     errors::{ErrorKind, Result},
-    client::{AuthorizedClient, ID, GeneralErrHandler},
     utils::{deserialize, serialize},
 };
 
@@ -9,7 +9,7 @@ use failure::Fail;
 use log::debug;
 use mime;
 use reqwest::{Response, StatusCode};
-use serde::{self, Serialize, Deserialize};
+use serde::{self, Deserialize, Serialize};
 use std::fmt;
 
 #[derive(PartialEq, Debug)]
@@ -158,7 +158,11 @@ pub struct Document {
     pub filename: String,
     pub hash: String,
     pub id: ID,
-    #[serde(rename = "mimetype", serialize_with = "serialize::mime_type", deserialize_with = "deserialize::mime_type")]
+    #[serde(
+        rename = "mimetype",
+        serialize_with = "serialize::mime_type",
+        deserialize_with = "deserialize::mime_type"
+    )]
     pub mime_type: mime::Mime,
     pub owner: ID,
     pub pages: Option<usize>,
@@ -186,16 +190,25 @@ pub struct Representations {
 impl fmt::Display for Representations {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut reps = Vec::new();
-        if self.pdf == "yes" { reps.push("pdf"); }
-        if self.fulltext == "yes" { reps.push("fulltext"); }
-        if self.jpg == "yes" { reps.push("jpg"); }
-        if self.png == "yes" { reps.push("png"); }
-        if self.mp4 == "yes" { reps.push("mp4"); }
+        if self.pdf == "yes" {
+            reps.push("pdf");
+        }
+        if self.fulltext == "yes" {
+            reps.push("fulltext");
+        }
+        if self.jpg == "yes" {
+            reps.push("jpg");
+        }
+        if self.png == "yes" {
+            reps.push("png");
+        }
+        if self.mp4 == "yes" {
+            reps.push("mp4");
+        }
 
         write!(f, "{:?}", reps)
     }
 }
-
 
 pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) -> Result<SearchResult> {
     let url = format!("https://api.{}/v2/documents", authorized_client.base_url);
@@ -215,7 +228,12 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
         .general_err_handler(StatusCode::OK)?;
     debug!("Response: '{:#?}'", response);
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
+    let result = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            response.status(),
+            "reading body".to_string(),
+        ))
+    })?;
 
     Ok(result)
 }

@@ -3,13 +3,12 @@ use crate::{
     errors::{ErrorKind, Result},
 };
 
+use chrono::{DateTime, FixedOffset};
 use failure::Fail;
 use log::debug;
 use reqwest::{Response, StatusCode};
-use serde::{self, Serialize, Deserialize};
+use serde::{self, Deserialize, Serialize};
 use std::string::ToString;
-use chrono::{DateTime, FixedOffset};
-
 
 #[derive(Serialize, Debug)]
 pub struct CollectionsQuery<'a> {
@@ -48,16 +47,13 @@ impl<'a> CollectionsQuery<'a> {
     }
 
     pub fn ids(self, ids: Vec<&'a str>) -> CollectionsQuery<'a> {
-        CollectionsQuery {
-            ids: Some(ids),
-            ..self
-        }
+        CollectionsQuery { ids: Some(ids), ..self }
     }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CollectionsResult {
-    pub collections: Vec<Collection>
+    pub collections: Vec<Collection>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -73,7 +69,10 @@ pub struct Collection {
     pub has_folders: Option<bool>,
 }
 
-pub fn search_collections(authorized_client: &AuthorizedClient, collection_query: CollectionsQuery) -> Result<CollectionsResult> {
+pub fn search_collections(
+    authorized_client: &AuthorizedClient,
+    collection_query: CollectionsQuery,
+) -> Result<CollectionsResult> {
     let url = format!("https://api.{}/v2/collections", authorized_client.base_url);
 
     let ids_str; // Borrow checker
@@ -102,7 +101,12 @@ pub fn search_collections(authorized_client: &AuthorizedClient, collection_query
         .general_err_handler(StatusCode::OK)?;
     debug!("Response: '{:#?}'", response);
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
+    let result = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            response.status(),
+            "reading body".to_string(),
+        ))
+    })?;
 
     Ok(result)
 }

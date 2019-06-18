@@ -117,7 +117,12 @@ pub fn exchange_code_for_token(
         .general_err_handler(StatusCode::OK)?;
     debug!("Response: '{:#?}'", response);
 
-    let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "parsing json".to_string())))?;
+    let result = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            response.status(),
+            "parsing json".to_string(),
+        ))
+    })?;
 
     Ok(result)
 }
@@ -142,9 +147,12 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         .general_err_handler(StatusCode::OK)?;
 
     let status_code = response.status();
-    let token = response
-        .json()
-        .map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "parsing json".to_string())))?;
+    let token = response.json().map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            status_code,
+            "parsing json".to_string(),
+        ))
+    })?;
 
     Ok(token)
 }

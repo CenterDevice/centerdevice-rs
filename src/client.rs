@@ -8,13 +8,13 @@ pub mod users;
 
 pub use auth::{Code, CodeProvider, Token};
 
-use crate::{CenterDevice, ClientCredentials, WithProgress};
 use crate::client::collections::{CollectionsQuery, CollectionsResult};
 use crate::client::download::Download;
 use crate::client::search::{Search, SearchResult};
 use crate::client::upload::Upload;
 use crate::client::users::{UsersQuery, UsersResult};
 use crate::errors::{Error, ErrorKind, Result};
+use crate::{CenterDevice, ClientCredentials, WithProgress};
 
 use failure::Fail;
 use reqwest::{self, IntoUrl, Response, StatusCode};
@@ -123,6 +123,11 @@ fn handle_error(response: &mut Response) -> Error {
 
     match response.text() {
         Ok(body) => Error::from(ErrorKind::ApiCallFailed(status_code, body)),
-        Err(e) => e.context(ErrorKind::FailedToProcessHttpResponse(status_code, "reading body".to_string())).into()
+        Err(e) => e
+            .context(ErrorKind::FailedToProcessHttpResponse(
+                status_code,
+                "reading body".to_string(),
+            ))
+            .into(),
     }
 }

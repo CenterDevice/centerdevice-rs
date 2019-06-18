@@ -35,7 +35,11 @@ impl Client {
         }
     }
 
-    pub fn with_token<'a>(base_url: &'a str, client_credentials: ClientCredentials<'a>, token: Token) -> AuthorizedClient<'a> {
+    pub fn with_token<'a>(
+        base_url: &'a str,
+        client_credentials: ClientCredentials<'a>,
+        token: Token,
+    ) -> AuthorizedClient<'a> {
         AuthorizedClient {
             base_url,
             client_credentials,
