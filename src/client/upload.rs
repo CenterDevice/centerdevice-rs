@@ -3,6 +3,7 @@ use crate::client::upload::internal::DocumentMetadata;
 use crate::errors::{ErrorKind, Result};
 
 use failure::Fail;
+use log::debug;
 use hex;
 use mime::*;
 use mime_multipart::{write_multipart, FilePart, Node, Part};
@@ -144,7 +145,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
     let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
         .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("multipart".to_string())))?;
 
-    let mut response: Response = authorized_client
+    let request = authorized_client
         .http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
@@ -153,10 +154,14 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
             header::ACCEPT,
             mime!(Application / Json; Charset = Utf8).to_string().as_bytes(),
         )
-        .body(body)
+        .body(body);
+    debug!("Request: '{:#?}'", request);
+
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(StatusCode::CREATED)?;
+    debug!("Response: '{:#?}'", response);
 
     let result: Id = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
 

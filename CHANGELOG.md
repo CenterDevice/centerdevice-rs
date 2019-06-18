@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
-## Fix
+## [0.3.10] - 2019-06-18
+
+### Add
+* debug info to requests and responses
+
+### Fix
 * users search passed parameters as form instead of query parameters
+
 
 ## [0.3.9] - 2019-06-12
 
@@ -103,7 +109,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.9...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.10...HEAD
+[0.3.10]: https://github.com/lukaspustina/ceres/compare/v0.3.9...0.3.10
 [0.3.9]: https://github.com/lukaspustina/ceres/compare/v0.3.8...0.3.9
 [0.3.8]: https://github.com/lukaspustina/ceres/compare/v0.3.7...0.3.8
 [0.3.7]: https://github.com/lukaspustina/ceres/compare/v0.3.6...0.3.7

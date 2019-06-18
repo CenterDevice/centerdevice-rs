@@ -74,13 +74,17 @@ fn do_download<T: WithProgress + ?Sized>(
         authorized_client.base_url, download.document_id
     );
 
-    let mut response = authorized_client
+    let request = authorized_client
         .http_client
         .get(&url)
-        .bearer_auth(&authorized_client.token.access_token)
+        .bearer_auth(&authorized_client.token.access_token);
+    debug!("Request: '{:#?}'", request);
+
+    let mut response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(StatusCode::OK)?;
+    debug!("Response: '{:#?}'", response);
 
     let status_code = response.status();
     let content_length = get_content_length(&response)?;

@@ -3,6 +3,7 @@ use crate::errors::{ErrorKind, Result};
 use crate::ClientCredentials;
 
 use failure::Fail;
+use log::debug;
 use reqwest::{Response, StatusCode, Url};
 use serde::Deserialize;
 
@@ -104,13 +105,17 @@ pub fn exchange_code_for_token(
 
     let http_client = reqwest::Client::new();
 
-    let mut response: Response = http_client
+    let request = http_client
         .post(&token_endpoint)
         .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
-        .form(&params)
+        .form(&params);
+    debug!("Request: '{:#?}'", request);
+
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(StatusCode::OK)?;
+    debug!("Response: '{:#?}'", response);
 
     let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "parsing json".to_string())))?;
 

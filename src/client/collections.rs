@@ -4,6 +4,7 @@ use crate::{
 };
 
 use failure::Fail;
+use log::debug;
 use reqwest::{Response, StatusCode};
 use serde::{self, Serialize, Deserialize};
 use std::string::ToString;
@@ -82,14 +83,18 @@ pub fn search_collections(authorized_client: &AuthorizedClient, collection_query
         params.push(("ids", &ids_str));
     }
 
-    let mut response: Response = authorized_client
+    let request = authorized_client
         .http_client
         .get(&url)
         .query(&params)
-        .bearer_auth(&authorized_client.token.access_token)
+        .bearer_auth(&authorized_client.token.access_token);
+    debug!("Request: '{:#?}'", request);
+
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(StatusCode::OK)?;
+    debug!("Response: '{:#?}'", response);
 
     let result = response.json().map_err(|e| e.context(ErrorKind::FailedToProcessHttpResponse(response.status(), "reading body".to_string())))?;
 

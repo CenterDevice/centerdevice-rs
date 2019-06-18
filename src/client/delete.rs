@@ -2,6 +2,7 @@ use crate::client::{AuthorizedClient, ID};
 use crate::errors::{Error, ErrorKind, Result};
 
 use failure::Fail;
+use log::debug;
 use reqwest::StatusCode;
 use serde::{self, Deserialize, Serialize};
 
@@ -37,13 +38,17 @@ pub fn delete_documents(authorized_client: &AuthorizedClient, document_ids: &[&s
 
     let delete_action = DeleteAction::new(document_ids);
 
-    let mut response = authorized_client
+    let request = authorized_client
         .http_client
         .post(&url)
         .bearer_auth(&authorized_client.token.access_token)
-        .json(&delete_action)
+        .json(&delete_action);
+    debug!("Request: '{:#?}'", request);
+
+    let mut response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+    debug!("Response: '{:#?}'", response);
 
     if response.status() != StatusCode::NO_CONTENT {
         let status_code = response.status();
