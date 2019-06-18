@@ -5,10 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+## Fix
+* users search passed parameters as form instead of query parameters
 
 ## [0.3.9] - 2019-06-12
 
-### Fixes
+### Fix
 * Collection results in-accessible because of private visibility
 * Send parameters as query instead of form parameters in collection search
 

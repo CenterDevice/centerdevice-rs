@@ -2,6 +2,7 @@ use crate::client::{AuthorizedClient, ID, GeneralErrHandler};
 use crate::errors::{ErrorKind, Result};
 
 use failure::Fail;
+use log::info;
 use reqwest::{Response, StatusCode};
 use serde::{self, Serialize, Deserialize};
 use std::string::ToString;
@@ -55,11 +56,14 @@ pub fn search_users(authorized_client: &AuthorizedClient, users_query: UsersQuer
         ("all", &users_query.all.to_string()),
     ];
 
-    let mut response: Response = authorized_client
+    let request = authorized_client
         .http_client
         .get(&url)
-        .form(&params)
-        .bearer_auth(&authorized_client.token.access_token)
+        .query(&params)
+        .bearer_auth(&authorized_client.token.access_token);
+    println!("Request: '{:#?}'", request);
+
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(StatusCode::OK)?;
