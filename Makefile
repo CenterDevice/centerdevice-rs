@@ -4,7 +4,7 @@ todos:
 	rg --vimgrep -g '!Makefile' -i todo 
 
 check:
-	cargo check
+	cargo check --all --examples --tests --benches
 
 build:
 	cargo build
@@ -12,9 +12,12 @@ build:
 test:
 	cargo test --all --no-fail-fast
 
-release: release-bump all
+release: release-test release-bump all
 	git commit -am "Bump to version $$(cargo read-manifest | jq .version)"
 	git tag v$$(cargo read-manifest | jq -r .version)
+
+release-test: check test
+	cargo publish --dry-run
 
 release-bump:
 	cargo bump
