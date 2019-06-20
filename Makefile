@@ -13,7 +13,7 @@ test:
 	cargo test --all --no-fail-fast
 
 clean-package:
-	cargo clean -p $$(cargo read-manifest | jq .name)
+	cargo clean -p $$(cargo read-manifest | jq -r .name)
 
 release: clean-package release-test release-bump all
 	git commit -am "Bump to version $$(cargo read-manifest | jq .version)"
