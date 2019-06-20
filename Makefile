@@ -7,16 +7,20 @@ check:
 	cargo check --all --examples --tests --benches
 
 build:
-	cargo build
+	cargo check --all --examples
 
 test:
 	cargo test --all --no-fail-fast
 
-release: release-test release-bump all
+clean-package:
+	cargo clean -p $$(cargo read-manifest | jq .name)
+
+release: clean-package release-test release-bump all
 	git commit -am "Bump to version $$(cargo read-manifest | jq .version)"
 	git tag v$$(cargo read-manifest | jq -r .version)
 
-release-test: check test
+release-test: check test clippy
+	cargo fmt -- --check
 	cargo publish --dry-run
 
 release-bump:
@@ -27,7 +31,7 @@ publish:
 	cargo publish
 
 clippy:
-	cargo clippy
+	cargo clippy --all --all-targets -- -D warnings $$(source ".clippy.args")
 
 fmt:
 	cargo fmt
@@ -37,8 +41,7 @@ duplicate_libs:
 
 _update-clippy_n_fmt:
 	rustup update
-	rustup component add clippy
-	rustup component add rustfmt
+	rustup component add clippy rustfmt
 
 _cargo_install:
 	cargo install -f cargo-tree
