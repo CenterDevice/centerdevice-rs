@@ -8,13 +8,17 @@ pub mod users;
 
 pub use auth::{Code, CodeProvider, Token};
 
-use crate::client::collections::{CollectionsQuery, CollectionsResult};
-use crate::client::download::Download;
-use crate::client::search::{Search, SearchResult};
-use crate::client::upload::Upload;
-use crate::client::users::{UsersQuery, UsersResult};
-use crate::errors::{Error, ErrorKind, Result};
-use crate::{CenterDevice, ClientCredentials, WithProgress};
+use crate::{
+    client::{
+        collections::{CollectionsQuery, CollectionsResult},
+        download::Download,
+        search::{Search, SearchResult},
+        upload::Upload,
+        users::{UsersQuery, UsersResult},
+    },
+    errors::{Error, ErrorKind, Result},
+    CenterDevice, ClientCredentials, WithProgress,
+};
 
 use failure::Fail;
 use reqwest::{self, IntoUrl, Response, StatusCode};
@@ -31,13 +35,18 @@ impl<'a, 'b: 'a> UnauthorizedClient<'b> {
         redirect_uri: T,
         code_provider: &S,
     ) -> Result<AuthorizedClient<'a>> {
-        let redirect_url = redirect_uri
-            .clone()
-            .into_url()
-            .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
+        let redirect_url = redirect_uri.clone().into_url().map_err(|e| {
+            e.context(ErrorKind::FailedToPrepareHttpRequest(
+                redirect_uri.to_string(),
+            ))
+        })?;
 
-        let token =
-            auth::authorization_code_flow(&self.client_credentials, self.base_url, &redirect_url, code_provider)?;
+        let token = auth::authorization_code_flow(
+            &self.client_credentials,
+            self.base_url,
+            &redirect_url,
+            code_provider,
+        )?;
 
         let authorized_client = AuthorizedClient {
             base_url: self.base_url,
@@ -80,7 +89,11 @@ impl<'a> CenterDevice for AuthorizedClient<'a> {
         download::download_file(self, download)
     }
 
-    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64> {
+    fn download_file_with_progress<T: WithProgress>(
+        &self,
+        download: Download,
+        progress: &mut T,
+    ) -> Result<u64> {
         download::download_file_with_progress(self, download, progress)
     }
 
@@ -111,8 +124,12 @@ impl GeneralErrHandler for Response {
     fn general_err_handler(mut self, expected_status: StatusCode) -> Result<Self> {
         match self.status() {
             code if code == expected_status => Ok(self),
-            code @ StatusCode::UNAUTHORIZED => Err(Error::from(ErrorKind::ApiCallFailedInvalidToken(code))),
-            code @ StatusCode::TOO_MANY_REQUESTS => Err(Error::from(ErrorKind::ApiCallFailedTooManyRequests(code))),
+            code @ StatusCode::UNAUTHORIZED => {
+                Err(Error::from(ErrorKind::ApiCallFailedInvalidToken(code)))
+            }
+            code @ StatusCode::TOO_MANY_REQUESTS => {
+                Err(Error::from(ErrorKind::ApiCallFailedTooManyRequests(code)))
+            }
             _ => Err(handle_error(&mut self)),
         }
     }

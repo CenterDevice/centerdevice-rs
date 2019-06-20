@@ -1,11 +1,14 @@
-use centerdevice::client::auth::{Code, CodeProvider};
-use centerdevice::errors::Result;
-use centerdevice::{Client, ClientCredentials};
+use centerdevice::{
+    client::auth::{Code, CodeProvider},
+    errors::Result,
+    Client, ClientCredentials,
+};
 
 use reqwest::IntoUrl;
-use std::env;
-use std::io;
-use std::io::Write;
+use std::{
+    env,
+    io::{self, Write},
+};
 
 struct MyCodeProvider {}
 

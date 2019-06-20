@@ -1,8 +1,6 @@
-use centerdevice::client::download::Download;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::download::Download, CenterDevice, Client, ClientCredentials, Token};
 
-use std::env;
-use std::path::Path;
+use std::{env, path::Path};
 
 fn main() {
     let client_id = env::var_os("CENTERDEVICE_CLIENT_ID")

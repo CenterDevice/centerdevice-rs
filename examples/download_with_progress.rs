@@ -1,9 +1,12 @@
-use centerdevice::client::download::Download;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token, WithProgress};
+use centerdevice::{
+    client::download::Download, CenterDevice, Client, ClientCredentials, Token, WithProgress,
+};
 
-use std::env;
-use std::io::{stdout, Write};
-use std::path::Path;
+use std::{
+    env,
+    io::{stdout, Write},
+    path::Path,
+};
 
 pub struct Progress {
     amount: usize,

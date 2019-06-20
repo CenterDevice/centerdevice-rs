@@ -1,5 +1,4 @@
-use centerdevice::client::search::*;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::search::*, CenterDevice, Client, ClientCredentials, Token};
 
 use std::env;
 

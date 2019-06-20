@@ -1,6 +1,8 @@
-use crate::client::{AuthorizedClient, GeneralErrHandler};
-use crate::errors::{ErrorKind, Result};
-use crate::ClientCredentials;
+use crate::{
+    client::{AuthorizedClient, GeneralErrHandler},
+    errors::{ErrorKind, Result},
+    ClientCredentials,
+};
 
 use failure::Fail;
 use log::debug;
@@ -84,8 +86,11 @@ fn get_code<T: CodeProvider>(
         ("redirect_uri", redirect_uri.as_str()),
         ("response_type", "code"),
     ];
-    let auth_url = Url::parse_with_params(&auth_endpoint, &params)
-        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
+    let auth_url = Url::parse_with_params(&auth_endpoint, &params).map_err(|e| {
+        e.context(ErrorKind::FailedToPrepareHttpRequest(
+            redirect_uri.to_string(),
+        ))
+    })?;
 
     code_provider.get_code(auth_url)
 }
@@ -107,7 +112,10 @@ pub fn exchange_code_for_token(
 
     let request = http_client
         .post(&token_endpoint)
-        .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
+        .basic_auth(
+            &client_credentials.client_id,
+            Some(&client_credentials.client_secret),
+        )
         .form(&params);
     debug!("Request: '{:#?}'", request);
 

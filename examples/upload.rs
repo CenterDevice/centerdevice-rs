@@ -1,9 +1,7 @@
-use centerdevice::client::upload::Upload;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::upload::Upload, CenterDevice, Client, ClientCredentials, Token};
 
 use mime_guess;
-use std::env;
-use std::path::Path;
+use std::{env, path::Path};
 
 fn main() {
     let client_id = env::var_os("CENTERDEVICE_CLIENT_ID")

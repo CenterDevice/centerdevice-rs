@@ -58,7 +58,10 @@ impl<'a> Search<'a> {
     }
 
     pub fn named_searches(self, named_search: NamedSearch) -> Search<'a> {
-        Search { named_search, ..self }
+        Search {
+            named_search,
+            ..self
+        }
     }
 }
 
@@ -129,7 +132,11 @@ pub(crate) mod internal {
                 tags: s.tags,
             };
             let query = Query { text: s.fulltext };
-            let params = Params { query, filter, named };
+            let params = Params {
+                query,
+                filter,
+                named,
+            };
 
             Search {
                 action: "search",
@@ -210,7 +217,10 @@ impl fmt::Display for Representations {
     }
 }
 
-pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) -> Result<SearchResult> {
+pub fn search_documents(
+    authorized_client: &AuthorizedClient,
+    search: Search,
+) -> Result<SearchResult> {
     let url = format!("https://api.{}/v2/documents", authorized_client.base_url);
 
     let internal_search = internal::Search::from_search(search);

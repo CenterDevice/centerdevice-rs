@@ -1,5 +1,7 @@
-use crate::client::{AuthorizedClient, GeneralErrHandler, ID};
-use crate::errors::{ErrorKind, Result};
+use crate::{
+    client::{AuthorizedClient, GeneralErrHandler, ID},
+    errors::{ErrorKind, Result},
+};
 
 use failure::Fail;
 use log::debug;
@@ -49,7 +51,10 @@ pub enum UserRole {
     Guest,
 }
 
-pub fn search_users(authorized_client: &AuthorizedClient, users_query: UsersQuery) -> Result<UsersResult> {
+pub fn search_users(
+    authorized_client: &AuthorizedClient,
+    users_query: UsersQuery,
+) -> Result<UsersResult> {
     let url = format!("https://api.{}/v2/users", authorized_client.base_url);
     let params = [("all", &users_query.all.to_string())];
 

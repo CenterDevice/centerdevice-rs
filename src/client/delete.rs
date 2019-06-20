@@ -1,5 +1,7 @@
-use crate::client::{AuthorizedClient, ID};
-use crate::errors::{Error, ErrorKind, Result};
+use crate::{
+    client::{AuthorizedClient, ID},
+    errors::{Error, ErrorKind, Result},
+};
 
 use failure::Fail;
 use log::debug;
@@ -45,7 +47,9 @@ pub fn delete_documents(authorized_client: &AuthorizedClient, document_ids: &[&s
         .json(&delete_action);
     debug!("Request: '{:#?}'", request);
 
-    let mut response = request.send().map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
+    let mut response = request
+        .send()
+        .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?;
     debug!("Response: '{:#?}'", response);
 
     if response.status() != StatusCode::NO_CONTENT {

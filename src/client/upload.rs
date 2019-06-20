@@ -1,6 +1,7 @@
-use crate::client::upload::internal::DocumentMetadata;
-use crate::client::{self, AuthorizedClient, GeneralErrHandler};
-use crate::errors::{ErrorKind, Result};
+use crate::{
+    client::{self, upload::internal::DocumentMetadata, AuthorizedClient, GeneralErrHandler},
+    errors::{ErrorKind, Result},
+};
 
 use failure::Fail;
 use hex;
@@ -10,8 +11,7 @@ use mime_multipart::{write_multipart, FilePart, Node, Part};
 use reqwest::{header, Response, StatusCode};
 use ring;
 use serde::{self, Deserialize};
-use std::borrow::Cow;
-use std::path::Path;
+use std::{borrow::Cow, path::Path};
 
 #[derive(Debug)]
 pub struct Upload<'a> {
@@ -34,7 +34,9 @@ impl<'a> Upload<'a> {
         })?;
         let filename = path
             .file_name()
-            .ok_or_else(|| ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?
+            .ok_or_else(|| {
+                ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string())
+            })?
             .to_string_lossy();
 
         Ok(Upload {
@@ -72,7 +74,10 @@ impl<'a> Upload<'a> {
     }
 
     pub fn collections(self, collections: &'a [&str]) -> Upload<'a> {
-        Upload { collections, ..self }
+        Upload {
+            collections,
+            ..self
+        }
     }
 }
 
@@ -105,7 +110,10 @@ pub(crate) mod internal {
     struct Actions<'a> {
         #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "add-tag"))]
         tags: Option<&'a [&'a str]>,
-        #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "add-to-collection"))]
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename(serialize = "add-to-collection")
+        )]
         collections: Option<&'a [&'a str]>,
     }
 
@@ -146,12 +154,18 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
      * cf. https://github.com/seanmonstar/reqwest/issues/262
      */
     let mut body: Vec<u8> = Vec::new();
-    let nodes = create_multipart(&document_metadata, &upload)
-        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("creating multipart".to_string())))?;
+    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| {
+        e.context(ErrorKind::FailedToPrepareHttpRequest(
+            "creating multipart".to_string(),
+        ))
+    })?;
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
-    let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
-        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("multipart".to_string())))?;
+    let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes).map_err(|e| {
+        e.context(ErrorKind::FailedToPrepareHttpRequest(
+            "multipart".to_string(),
+        ))
+    })?;
 
     let request = authorized_client
         .http_client
@@ -160,7 +174,9 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         .header(header::CONTENT_TYPE, content_type.to_string().as_bytes())
         .header(
             header::ACCEPT,
-            mime!(Application / Json; Charset = Utf8).to_string().as_bytes(),
+            mime!(Application / Json; Charset = Utf8)
+                .to_string()
+                .as_bytes(),
         )
         .body(body);
     debug!("Request: '{:#?}'", request);
@@ -182,8 +198,11 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
 }
 
 fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<Node>> {
-    // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10 headers and mime 0.2
-    use hyper::header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers};
+    // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10
+    // headers and mime 0.2
+    use hyper::header::{
+        ContentDisposition, ContentType, DispositionParam, DispositionType, Headers,
+    };
 
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
@@ -199,7 +218,10 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     h.set(ContentType(mime!(Application / Json)));
     h.set(ContentDisposition {
         disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![DispositionParam::Ext("name".to_string(), "metadata".to_string())],
+        parameters: vec![DispositionParam::Ext(
+            "name".to_string(),
+            "metadata".to_string(),
+        )],
     });
     nodes.push(Node::Part(Part {
         headers: h,
@@ -220,7 +242,8 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     Ok(nodes)
 }
 
-// CenterDevice / Jersey does not accept special characters in boundary; thus, we build it ourselves.
+// CenterDevice / Jersey does not accept special characters in boundary; thus, we build it
+// ourselves.
 fn generate_boundary(seed: &[u8]) -> String {
     let sha = ring::digest::digest(&ring::digest::SHA256, seed);
     let sha_str = hex::encode(sha.as_ref());

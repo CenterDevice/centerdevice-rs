@@ -4,20 +4,28 @@ pub mod utils;
 
 pub use crate::client::auth::Token;
 
-use crate::client::collections::{CollectionsQuery, CollectionsResult};
-use crate::client::download::Download;
-use crate::client::search::{Search, SearchResult};
-use crate::client::upload::Upload;
-use crate::client::users::{UsersQuery, UsersResult};
-use crate::client::{AuthorizedClient, UnauthorizedClient, ID};
-use crate::errors::Result;
+use crate::{
+    client::{
+        collections::{CollectionsQuery, CollectionsResult},
+        download::Download,
+        search::{Search, SearchResult},
+        upload::Upload,
+        users::{UsersQuery, UsersResult},
+        AuthorizedClient, UnauthorizedClient, ID,
+    },
+    errors::Result,
+};
 
 pub trait CenterDevice {
     fn refresh_access_token(&self) -> Result<Token>;
     fn search_documents(&self, search: Search) -> Result<SearchResult>;
     fn upload_file(&self, upload: Upload) -> Result<ID>;
     fn download_file(&self, download: Download) -> Result<u64>;
-    fn download_file_with_progress<T: WithProgress>(&self, download: Download, progress: &mut T) -> Result<u64>;
+    fn download_file_with_progress<T: WithProgress>(
+        &self,
+        download: Download,
+        progress: &mut T,
+    ) -> Result<u64>;
     fn delete_documents(&self, document_ids: &[&str]) -> Result<()>;
     fn search_users(&self, users_query: UsersQuery) -> Result<UsersResult>;
     fn search_collections(&self, collections_query: CollectionsQuery) -> Result<CollectionsResult>;
@@ -27,7 +35,10 @@ pub struct Client {}
 
 impl Client {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new<'a>(base_url: &'a str, client_credentials: ClientCredentials<'a>) -> UnauthorizedClient<'a> {
+    pub fn new<'a>(
+        base_url: &'a str,
+        client_credentials: ClientCredentials<'a>,
+    ) -> UnauthorizedClient<'a> {
         UnauthorizedClient {
             base_url,
             client_credentials,

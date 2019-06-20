@@ -47,7 +47,10 @@ impl<'a> CollectionsQuery<'a> {
     }
 
     pub fn ids(self, ids: Vec<&'a str>) -> CollectionsQuery<'a> {
-        CollectionsQuery { ids: Some(ids), ..self }
+        CollectionsQuery {
+            ids: Some(ids),
+            ..self
+        }
     }
 }
 

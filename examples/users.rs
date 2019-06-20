@@ -1,5 +1,4 @@
-use centerdevice::client::users::*;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::users::*, CenterDevice, Client, ClientCredentials, Token};
 
 use std::env;
 

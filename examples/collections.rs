@@ -1,5 +1,6 @@
-use centerdevice::client::collections::CollectionsQuery;
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{
+    client::collections::CollectionsQuery, CenterDevice, Client, ClientCredentials, Token,
+};
 
 use std::env;
 
