@@ -20,7 +20,7 @@ release: clean-package release-test release-bump all
 	git tag v$$(cargo read-manifest | jq -r .version)
 
 release-test: check test clippy
-	cargo fmt -- --check
+	cargo +nightly fmt -- --check
 	cargo publish --dry-run
 
 release-bump:
@@ -41,7 +41,8 @@ duplicate_libs:
 
 _update-clippy_n_fmt:
 	rustup update
-	rustup component add clippy rustfmt
+	rustup component add clippy
+	rustup component add rustfmt --toolchain=nightly
 
 _cargo_install:
 	cargo install -f cargo-tree
