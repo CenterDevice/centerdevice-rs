@@ -57,7 +57,7 @@ impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> 
 }
 
 pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<u64> {
-    do_download(authorized_client, download, None::<&mut WithProgress>)
+    do_download(authorized_client, download, None::<&mut dyn WithProgress>)
 }
 
 pub fn download_file_with_progress<T: WithProgress + ?Sized>(
