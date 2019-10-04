@@ -22,14 +22,14 @@ release: clean-package release-test release-bump all
 release-test: check test clippy
 	cargo audit --deny-warnings
 	cargo +nightly fmt -- --check
-	cargo publish --dry-run
+	cargo publish --dry-run --allow-dirty
 
 release-bump:
 	cargo bump
 
 publish:
 	git push && git push --tags
-	cargo publish
+	cargo publish --allow-dirty
 
 clippy:
 	cargo clippy --all --all-targets -- -D warnings $$(source ".clippy.args")
