@@ -35,7 +35,7 @@ clippy:
 	cargo clippy --all --all-targets -- -D warnings $$(source ".clippy.args")
 
 fmt:
-	cargo +nightly fmt
+	cargo +nightly fmt --all
 
 duplicate_libs:
 	cargo tree -d
