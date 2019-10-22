@@ -122,7 +122,7 @@ pub fn exchange_code_for_token(
     let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
-        .general_err_handler(StatusCode::OK)?;
+        .general_err_handler(&[StatusCode::OK])?;
     debug!("Response: '{:#?}'", response);
 
     let result = response.json().map_err(|e| {
@@ -152,7 +152,7 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         .form(&params)
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
-        .general_err_handler(StatusCode::OK)?;
+        .general_err_handler(&[StatusCode::OK])?;
 
     let status_code = response.status();
     let token = response.json().map_err(|e| {

@@ -1,6 +1,6 @@
 use crate::{
     client::{AuthorizedClient, GeneralErrHandler, ID},
-    errors::{ErrorKind, Result},
+    errors::{Error, ErrorKind, Result},
 };
 
 use chrono::{DateTime, FixedOffset};
@@ -59,6 +59,14 @@ pub struct CollectionsResult {
     pub collections: Vec<Collection>,
 }
 
+impl Default for CollectionsResult {
+    fn default() -> CollectionsResult {
+        CollectionsResult {
+            collections: Vec::with_capacity(0)
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Collection {
     pub id: String,
@@ -101,15 +109,22 @@ pub fn search_collections(
     let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
-        .general_err_handler(StatusCode::OK)?;
+        .general_err_handler(&[StatusCode::OK, StatusCode::NO_CONTENT])?;
     debug!("Response: '{:#?}'", response);
 
-    let result = response.json().map_err(|e| {
-        e.context(ErrorKind::FailedToProcessHttpResponse(
-            response.status(),
-            "reading body".to_string(),
-        ))
-    })?;
+    let result = match response.status() {
+        StatusCode::OK => {
+            response.json().map_err(|e| {
+            e.context(ErrorKind::FailedToProcessHttpResponse(
+                response.status(),
+                "reading body".to_string(),
+            ))})?
+        },
+        StatusCode::NO_CONTENT => {
+            CollectionsResult::default()
+        },
+        code @ _ => Err(Error::from(ErrorKind::ApiCallFailed(code, "unexpected response code".to_string())))?,
+    };
 
     Ok(result)
 }

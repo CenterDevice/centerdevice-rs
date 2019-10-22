@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ### Add
 * debug logging for metadata in upload
 
+### Fix
+* NO_CONTENT error for empty collection search result
+
 
 ## [0.3.10] - 2019-06-18
 

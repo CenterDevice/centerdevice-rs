@@ -115,15 +115,15 @@ pub type ID = String;
 pub(crate) trait GeneralErrHandler {
     type T: std::marker::Sized;
 
-    fn general_err_handler(self, expected_status: StatusCode) -> Result<Self::T>;
+    fn general_err_handler(self, expected_states: &[StatusCode]) -> Result<Self::T>;
 }
 
 impl GeneralErrHandler for Response {
     type T = Response;
 
-    fn general_err_handler(mut self, expected_status: StatusCode) -> Result<Self> {
+    fn general_err_handler(mut self, expected_states: &[StatusCode]) -> Result<Self> {
         match self.status() {
-            code if code == expected_status => Ok(self),
+            code if expected_states.contains(&code) => Ok(self),
             code @ StatusCode::UNAUTHORIZED => {
                 Err(Error::from(ErrorKind::ApiCallFailedInvalidToken(code)))
             }

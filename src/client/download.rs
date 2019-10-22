@@ -87,7 +87,7 @@ fn do_download<T: WithProgress + ?Sized>(
     let mut response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
-        .general_err_handler(StatusCode::OK)?;
+        .general_err_handler(&[StatusCode::OK])?;
     debug!("Response: '{:#?}'", response);
 
     let status_code = response.status();

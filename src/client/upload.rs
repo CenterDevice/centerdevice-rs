@@ -184,7 +184,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
     let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
-        .general_err_handler(StatusCode::CREATED)?;
+        .general_err_handler(&[StatusCode::CREATED])?;
     debug!("Response: '{:#?}'", response);
 
     let result: Id = response.json().map_err(|e| {
