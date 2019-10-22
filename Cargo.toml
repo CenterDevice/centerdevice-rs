@@ -1,6 +1,6 @@
 [package]
 name = "centerdevice"
-version = "0.3.11"
+version = "0.3.12"
 authors = ["Lukas Pustina <lukas.pustina@centerdevice.de>"]
 description = "Rust API Client for CenterDevice"
 repository = "https://github.com/centerdevice/centerdevice-rs.git"
