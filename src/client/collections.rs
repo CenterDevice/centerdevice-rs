@@ -62,7 +62,7 @@ pub struct CollectionsResult {
 impl Default for CollectionsResult {
     fn default() -> CollectionsResult {
         CollectionsResult {
-            collections: Vec::with_capacity(0)
+            collections: Vec::with_capacity(0),
         }
     }
 }
@@ -113,17 +113,19 @@ pub fn search_collections(
     debug!("Response: '{:#?}'", response);
 
     let result = match response.status() {
-        StatusCode::OK => {
-            response.json().map_err(|e| {
+        StatusCode::OK => response.json().map_err(|e| {
             e.context(ErrorKind::FailedToProcessHttpResponse(
                 response.status(),
                 "reading body".to_string(),
-            ))})?
-        },
-        StatusCode::NO_CONTENT => {
-            CollectionsResult::default()
-        },
-        code @ _ => Err(Error::from(ErrorKind::ApiCallFailed(code, "unexpected response code".to_string())))?,
+            ))
+        })?,
+        StatusCode::NO_CONTENT => CollectionsResult::default(),
+        code => {
+            return Err(Error::from(ErrorKind::ApiCallFailed(
+                code,
+                "unexpected response code".to_string(),
+            )))
+        }
     };
 
     Ok(result)
