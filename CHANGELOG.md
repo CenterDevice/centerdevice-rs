@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+
+## [0.3.12] - 2019-22-22
+
 ### Add
 * debug logging for metadata in upload
 
@@ -116,7 +119,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.10...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.12...HEAD
+[0.3.12]: https://github.com/lukaspustina/ceres/compare/v0.3.10...0.3.12
 [0.3.10]: https://github.com/lukaspustina/ceres/compare/v0.3.9...0.3.10
 [0.3.9]: https://github.com/lukaspustina/ceres/compare/v0.3.8...0.3.9
 [0.3.8]: https://github.com/lukaspustina/ceres/compare/v0.3.7...0.3.8
