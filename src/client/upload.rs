@@ -206,13 +206,13 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
 
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
-    let json_bytes = serde_json::to_string(metadata)
+    let metadata_json = serde_json::to_string(metadata)
         .map_err(|e| {
             e.context(ErrorKind::FailedToPrepareHttpRequest(
                 "serializing doc-metadata json".to_string(),
             ))
-        })?
-        .into_bytes();
+        })?;
+    debug!("Metadata: {:#?}", metadata_json);
 
     let mut h = Headers::new();
     h.set(ContentType(mime!(Application / Json)));
@@ -225,7 +225,7 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     });
     nodes.push(Node::Part(Part {
         headers: h,
-        body: json_bytes,
+        body: metadata_json.into_bytes(),
     }));
 
     let mut h = Headers::new();

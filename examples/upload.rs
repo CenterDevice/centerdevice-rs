@@ -4,6 +4,8 @@ use mime_guess;
 use std::{env, path::Path};
 
 fn main() {
+    env_logger::init();
+
     let client_id = env::var_os("CENTERDEVICE_CLIENT_ID")
         .expect("Environment variable 'CENTERDEVICE_CLIENT_ID' is not set.")
         .to_string_lossy()
@@ -32,7 +34,8 @@ fn main() {
         .expect("Failed to create Upload for path")
         .title("Rust upload example")
         .author("Lukas Pustina")
-        .tags(&["rust"]);
+        .tags(&["rust"])
+        .collections(&["5ca2bc87-8314-4037-8d39-5cd31dc379d4"]);
 
     let result = client.upload_file(upload).expect("Upload failed");
 
