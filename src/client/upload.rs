@@ -9,7 +9,6 @@ use log::debug;
 use mime::*;
 use mime_multipart::{write_multipart, FilePart, Node, Part};
 use reqwest::{header, Response, StatusCode};
-use ring;
 use serde::{self, Deserialize};
 use std::{borrow::Cow, path::Path};
 

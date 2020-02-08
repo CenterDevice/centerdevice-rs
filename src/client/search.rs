@@ -7,7 +7,6 @@ use crate::{
 use chrono::{DateTime, FixedOffset};
 use failure::Fail;
 use log::debug;
-use mime;
 use reqwest::{Response, StatusCode};
 use serde::{self, Deserialize, Serialize};
 use std::fmt;
