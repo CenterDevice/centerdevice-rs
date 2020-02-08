@@ -1,6 +1,6 @@
 # CenterDevice API Client for Rust
 
-[![](https://img.shields.io/crates/v/centerdevice.svg)](https://crates.io/crates/centerdevice) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg?label=License)](./LICENSE)
+[![Build Status](https://dev.azure.com/centerdevice/centerdevice-rs/_apis/build/status/CenterDevice.centerdevice-rs?branchName=master)](https://dev.azure.com/centerdevice/centerdevice-rs/_build/latest?definitionId=10&branchName=master) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg?label=License)](./LICENSE)
 
 `centerdevice-rs` is a partial [Rust](https://rust-lang.org) API binding library for [CenterDevice](https://centerdevice.de).
 
