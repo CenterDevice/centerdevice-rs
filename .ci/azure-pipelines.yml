@@ -117,7 +117,7 @@ stages:
 
   - stage: Publish_Release
     displayName: "Publish Release"
-    dependsOn: Build_Release_Artefacts
+    dependsOn: Check_Build_Test
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
     jobs:
       - job: 'Publish_To_GitHub'
