@@ -14,9 +14,9 @@ pub use reqwest::IntoUrl;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Token {
-    pub(crate) token_type: Option<String>,
-    pub(crate) access_token: String,
-    pub(crate) expires_in: Option<u32>,
+    pub(crate) token_type:    Option<String>,
+    pub(crate) access_token:  String,
+    pub(crate) expires_in:    Option<u32>,
     pub(crate) refresh_token: String,
 }
 
@@ -30,21 +30,13 @@ impl Token {
         }
     }
 
-    pub fn token_type(&self) -> Option<&str> {
-        self.token_type.as_ref().map(String::as_ref)
-    }
+    pub fn token_type(&self) -> Option<&str> { self.token_type.as_ref().map(String::as_ref) }
 
-    pub fn access_token(&self) -> &str {
-        &self.access_token
-    }
+    pub fn access_token(&self) -> &str { &self.access_token }
 
-    pub fn expires_in(&self) -> Option<u32> {
-        self.expires_in
-    }
+    pub fn expires_in(&self) -> Option<u32> { self.expires_in }
 
-    pub fn refresh_token(&self) -> &str {
-        self.refresh_token.as_ref()
-    }
+    pub fn refresh_token(&self) -> &str { self.refresh_token.as_ref() }
 }
 
 pub trait CodeProvider {
@@ -57,9 +49,7 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(code: String) -> Code {
-        Code { code }
-    }
+    pub fn new(code: String) -> Code { Code { code } }
 }
 
 pub fn authorization_code_flow<T: CodeProvider>(
@@ -86,11 +76,8 @@ fn get_code<T: CodeProvider>(
         ("redirect_uri", redirect_uri.as_str()),
         ("response_type", "code"),
     ];
-    let auth_url = Url::parse_with_params(&auth_endpoint, &params).map_err(|e| {
-        e.context(ErrorKind::FailedToPrepareHttpRequest(
-            redirect_uri.to_string(),
-        ))
-    })?;
+    let auth_url = Url::parse_with_params(&auth_endpoint, &params)
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
 
     code_provider.get_code(auth_url)
 }
@@ -112,10 +99,7 @@ pub fn exchange_code_for_token(
 
     let request = http_client
         .post(&token_endpoint)
-        .basic_auth(
-            &client_credentials.client_id,
-            Some(&client_credentials.client_secret),
-        )
+        .basic_auth(&client_credentials.client_id, Some(&client_credentials.client_secret))
         .form(&params);
     debug!("Request: '{:#?}'", request);
 

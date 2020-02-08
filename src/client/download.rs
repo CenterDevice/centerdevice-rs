@@ -17,8 +17,8 @@ use std::{
 #[derive(Debug)]
 pub struct Download<'a> {
     document_id: &'a str,
-    dir: &'a Path,
-    filename: Option<&'a Path>,
+    dir:         &'a Path,
+    filename:    Option<&'a Path>,
 }
 
 impl<'a> Download<'a> {
@@ -39,7 +39,7 @@ impl<'a> Download<'a> {
 }
 struct ProgressWriter<'a, P: ?Sized, W> {
     progress: Option<&'a mut P>,
-    inner: W,
+    inner:    W,
 }
 
 impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> {
@@ -51,9 +51,7 @@ impl<'a, P: WithProgress + ?Sized, W: Write> Write for ProgressWriter<'a, P, W> 
         Ok(amount)
     }
 
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.inner.flush()
-    }
+    fn flush(&mut self) -> std::io::Result<()> { self.inner.flush() }
 }
 
 pub fn download_file(authorized_client: &AuthorizedClient, download: Download) -> Result<u64> {
@@ -144,21 +142,15 @@ fn get_filename(response: &Response) -> Result<String> {
     let header: Vec<_> = response
         .headers()
         .get(header::CONTENT_DISPOSITION)
-        .ok_or_else(|| {
-            ErrorKind::FailedToProcessHttpResponse(
-                status_code,
-                "content disposition header".to_string(),
-            )
-        })?
+        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?
         .as_bytes()
         .to_vec();
-    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&[header])
-        .map_err(|e| {
-            e.context(ErrorKind::FailedToProcessHttpResponse(
-                status_code,
-                "parsing content disposition header".to_string(),
-            ))
-        })?;
+    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&[header]).map_err(|e| {
+        e.context(ErrorKind::FailedToProcessHttpResponse(
+            status_code,
+            "parsing content disposition header".to_string(),
+        ))
+    })?;
 
     let mut filename = None;
     for cp in &content_disposition.parameters {
@@ -188,9 +180,7 @@ fn get_content_length(response: &Response) -> Result<u64> {
     let content_length = response
         .headers()
         .get(header::CONTENT_LENGTH)
-        .ok_or_else(|| {
-            ErrorKind::FailedToProcessHttpResponse(status_code, "content length header".to_string())
-        })?
+        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content length header".to_string()))?
         .to_str()
         .map_err(|e| {
             e.context(ErrorKind::FailedToProcessHttpResponse(

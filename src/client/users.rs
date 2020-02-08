@@ -21,14 +21,14 @@ pub struct UsersResult {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
-    pub id: ID,
+    pub id:             ID,
     #[serde(rename = "first-name")]
-    pub first_name: String,
+    pub first_name:     String,
     #[serde(rename = "last-name")]
-    pub last_name: String,
-    pub email: String,
-    pub status: UserStatus,
-    pub role: UserRole,
+    pub last_name:      String,
+    pub email:          String,
+    pub status:         UserStatus,
+    pub role:           UserRole,
     #[serde(rename = "technical-user")]
     pub technical_user: Option<bool>,
 }
@@ -51,10 +51,7 @@ pub enum UserRole {
     Guest,
 }
 
-pub fn search_users(
-    authorized_client: &AuthorizedClient,
-    users_query: UsersQuery,
-) -> Result<UsersResult> {
+pub fn search_users(authorized_client: &AuthorizedClient, users_query: UsersQuery) -> Result<UsersResult> {
     let url = format!("https://api.{}/v2/users", authorized_client.base_url);
     let params = [("all", &users_query.all.to_string())];
 

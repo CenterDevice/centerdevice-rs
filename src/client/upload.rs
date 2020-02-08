@@ -14,13 +14,13 @@ use std::{borrow::Cow, path::Path};
 
 #[derive(Debug)]
 pub struct Upload<'a> {
-    path: &'a Path,
-    mime_type: Mime,
-    filename: Cow<'a, str>,
-    size: u64,
-    title: Option<&'a str>,
-    author: Option<&'a str>,
-    tags: &'a [&'a str],
+    path:        &'a Path,
+    mime_type:   Mime,
+    filename:    Cow<'a, str>,
+    size:        u64,
+    title:       Option<&'a str>,
+    author:      Option<&'a str>,
+    tags:        &'a [&'a str],
     collections: &'a [&'a str],
 }
 
@@ -33,9 +33,7 @@ impl<'a> Upload<'a> {
         })?;
         let filename = path
             .file_name()
-            .ok_or_else(|| {
-                ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string())
-            })?
+            .ok_or_else(|| ErrorKind::FailedToPrepareHttpRequest("getting filename from path".to_string()))?
             .to_string_lossy();
 
         Ok(Upload {
@@ -68,16 +66,9 @@ impl<'a> Upload<'a> {
         }
     }
 
-    pub fn tags(self, tags: &'a [&str]) -> Upload<'a> {
-        Upload { tags, ..self }
-    }
+    pub fn tags(self, tags: &'a [&str]) -> Upload<'a> { Upload { tags, ..self } }
 
-    pub fn collections(self, collections: &'a [&str]) -> Upload<'a> {
-        Upload {
-            collections,
-            ..self
-        }
-    }
+    pub fn collections(self, collections: &'a [&str]) -> Upload<'a> { Upload { collections, ..self } }
 }
 
 pub(crate) mod internal {
@@ -92,27 +83,24 @@ pub(crate) mod internal {
     struct Metadata<'a> {
         document: Document<'a>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        actions: Option<Actions<'a>>,
+        actions:  Option<Actions<'a>>,
     }
 
     #[derive(Serialize, Debug)]
     struct Document<'a> {
         filename: &'a str,
-        size: u64,
+        size:     u64,
         #[serde(skip_serializing_if = "Option::is_none")]
-        title: Option<&'a str>,
+        title:    Option<&'a str>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        author: Option<&'a str>,
+        author:   Option<&'a str>,
     }
 
     #[derive(Serialize, Debug)]
     struct Actions<'a> {
         #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "add-tag"))]
-        tags: Option<&'a [&'a str]>,
-        #[serde(
-            skip_serializing_if = "Option::is_none",
-            rename(serialize = "add-to-collection")
-        )]
+        tags:        Option<&'a [&'a str]>,
+        #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "add-to-collection"))]
         collections: Option<&'a [&'a str]>,
     }
 
@@ -120,12 +108,12 @@ pub(crate) mod internal {
         pub fn from_upload(u: &'a super::Upload<'a>) -> Self {
             let document = Document {
                 filename: u.filename.as_ref(),
-                size: u.size,
-                title: u.title,
-                author: u.author,
+                size:     u.size,
+                title:    u.title,
+                author:   u.author,
             };
             let actions = Actions {
-                tags: Some(u.tags),
+                tags:        Some(u.tags),
                 collections: Some(u.collections),
             };
             let metadata = Metadata {
@@ -148,23 +136,16 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
 
     let document_metadata = internal::DocumentMetadata::from_upload(&upload);
 
-    /* FIXME: Loads all the things into memory.
-     * cf. https://github.com/seanmonstar/reqwest/issues/365
-     * cf. https://github.com/seanmonstar/reqwest/issues/262
-     */
+    // FIXME: Loads all the things into memory.
+    // cf. https://github.com/seanmonstar/reqwest/issues/365
+    // cf. https://github.com/seanmonstar/reqwest/issues/262
     let mut body: Vec<u8> = Vec::new();
-    let nodes = create_multipart(&document_metadata, &upload).map_err(|e| {
-        e.context(ErrorKind::FailedToPrepareHttpRequest(
-            "creating multipart".to_string(),
-        ))
-    })?;
+    let nodes = create_multipart(&document_metadata, &upload)
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("creating multipart".to_string())))?;
     let boundary = generate_boundary(&upload.filename.as_bytes());
     let content_type: Mime = mime!(Multipart / FormData; Boundary = (boundary));
-    let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes).map_err(|e| {
-        e.context(ErrorKind::FailedToPrepareHttpRequest(
-            "multipart".to_string(),
-        ))
-    })?;
+    let _ = write_multipart(&mut body, &boundary.into_bytes(), &nodes)
+        .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest("multipart".to_string())))?;
 
     let request = authorized_client
         .http_client
@@ -173,9 +154,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         .header(header::CONTENT_TYPE, content_type.to_string().as_bytes())
         .header(
             header::ACCEPT,
-            mime!(Application / Json; Charset = Utf8)
-                .to_string()
-                .as_bytes(),
+            mime!(Application / Json; Charset = Utf8).to_string().as_bytes(),
         )
         .body(body);
     debug!("Request: '{:#?}'", request);
@@ -199,9 +178,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
 fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<Node>> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10
     // headers and mime 0.2
-    use hyper::header::{
-        ContentDisposition, ContentType, DispositionParam, DispositionType, Headers,
-    };
+    use hyper::header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers};
 
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 
@@ -216,21 +193,18 @@ fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<
     h.set(ContentType(mime!(Application / Json)));
     h.set(ContentDisposition {
         disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![DispositionParam::Ext(
-            "name".to_string(),
-            "metadata".to_string(),
-        )],
+        parameters:  vec![DispositionParam::Ext("name".to_string(), "metadata".to_string())],
     });
     nodes.push(Node::Part(Part {
         headers: h,
-        body: metadata_json.into_bytes(),
+        body:    metadata_json.into_bytes(),
     }));
 
     let mut h = Headers::new();
     h.set(ContentType(upload.mime_type.clone()));
     h.set(ContentDisposition {
         disposition: DispositionType::Ext("form-data".to_string()),
-        parameters: vec![
+        parameters:  vec![
             DispositionParam::Ext("name".to_string(), "document".to_string()),
             DispositionParam::Ext("filename".to_string(), upload.filename.to_string()),
         ],

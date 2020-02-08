@@ -13,21 +13,12 @@ pub enum ErrorKind {
     #[fail(display = "HTTP request failed")]
     HttpRequestFailed,
 
-    #[fail(
-        display = "failed to read HTTP response, status_code = {}, reason = {}",
-        _0, _1
-    )]
+    #[fail(display = "failed to read HTTP response, status_code = {}, reason = {}", _0, _1)]
     FailedToProcessHttpResponse(StatusCode, String),
 
-    #[fail(
-        display = "API call failed because of invalid token, status code = {}",
-        _0
-    )]
+    #[fail(display = "API call failed because of invalid token, status code = {}", _0)]
     ApiCallFailedInvalidToken(StatusCode),
-    #[fail(
-        display = "API call failed because of too many reqwests, status code = {}",
-        _0
-    )]
+    #[fail(display = "API call failed because of too many reqwests, status code = {}", _0)]
     ApiCallFailedTooManyRequests(StatusCode),
 
     #[fail(display = "API call failed with status code = {}, '{}'", _0, _1)]
@@ -44,9 +35,7 @@ impl Clone for ErrorKind {
             HttpRequestFailed => HttpRequestFailed,
             ApiCallFailed(ref status_code, ref body) => ApiCallFailed(*status_code, body.clone()),
             ApiCallFailedInvalidToken(ref status_code) => ApiCallFailedInvalidToken(*status_code),
-            ApiCallFailedTooManyRequests(ref status_code) => {
-                ApiCallFailedTooManyRequests(*status_code)
-            }
+            ApiCallFailedTooManyRequests(ref status_code) => ApiCallFailedTooManyRequests(*status_code),
             FailedToProcessHttpResponse(ref status_code, ref body) => {
                 FailedToProcessHttpResponse(*status_code, body.clone())
             }
@@ -64,9 +53,7 @@ pub struct Error {
 
 impl Error {
     /// Get the kind of the error
-    pub fn kind(&self) -> &ErrorKind {
-        self.inner.get_context()
-    }
+    pub fn kind(&self) -> &ErrorKind { self.inner.get_context() }
 }
 
 impl Clone for Error {
@@ -78,19 +65,13 @@ impl Clone for Error {
 }
 
 impl Fail for Error {
-    fn cause(&self) -> Option<&dyn Fail> {
-        self.inner.cause()
-    }
+    fn cause(&self) -> Option<&dyn Fail> { self.inner.cause() }
 
-    fn backtrace(&self) -> Option<&Backtrace> {
-        self.inner.backtrace()
-    }
+    fn backtrace(&self) -> Option<&Backtrace> { self.inner.backtrace() }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.inner, f)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::Display::fmt(&self.inner, f) }
 }
 
 impl From<ErrorKind> for Error {
@@ -102,9 +83,7 @@ impl From<ErrorKind> for Error {
 }
 
 impl From<Context<ErrorKind>> for Error {
-    fn from(inner: Context<ErrorKind>) -> Error {
-        Error { inner }
-    }
+    fn from(inner: Context<ErrorKind>) -> Error { Error { inner } }
 }
 
 pub type Result<T> = ::std::result::Result<T, Error>;

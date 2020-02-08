@@ -19,18 +19,18 @@ pub enum NamedSearch {
 
 #[derive(Debug)]
 pub struct Search<'a> {
-    filenames: Option<Vec<&'a str>>,
-    tags: Option<Vec<&'a str>>,
-    fulltext: Option<&'a str>,
+    filenames:    Option<Vec<&'a str>>,
+    tags:         Option<Vec<&'a str>>,
+    fulltext:     Option<&'a str>,
     named_search: NamedSearch,
 }
 
 impl<'a> Search<'a> {
     pub fn new() -> Search<'a> {
         Search {
-            filenames: None,
-            tags: None,
-            fulltext: None,
+            filenames:    None,
+            tags:         None,
+            fulltext:     None,
             named_search: NamedSearch::None,
         }
     }
@@ -56,18 +56,11 @@ impl<'a> Search<'a> {
         }
     }
 
-    pub fn named_searches(self, named_search: NamedSearch) -> Search<'a> {
-        Search {
-            named_search,
-            ..self
-        }
-    }
+    pub fn named_searches(self, named_search: NamedSearch) -> Search<'a> { Search { named_search, ..self } }
 }
 
 impl<'a> Default for Search<'a> {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 pub(crate) mod internal {
@@ -81,10 +74,10 @@ pub(crate) mod internal {
 
     #[derive(Serialize, Debug)]
     struct Params<'a> {
-        query: Query<'a>,
+        query:  Query<'a>,
         filter: Filter<'a>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        named: Option<Vec<Named<'a>>>,
+        named:  Option<Vec<Named<'a>>>,
     }
 
     #[derive(Serialize, Debug)]
@@ -98,12 +91,12 @@ pub(crate) mod internal {
         #[serde(skip_serializing_if = "Option::is_none")]
         filenames: Option<Vec<&'a str>>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tags: Option<Vec<&'a str>>,
+        tags:      Option<Vec<&'a str>>,
     }
 
     #[derive(Serialize, Debug)]
     struct Named<'a> {
-        name: &'a str,
+        name:   &'a str,
         params: Include,
     }
 
@@ -119,7 +112,7 @@ pub(crate) mod internal {
                 super::NamedSearch::PublicCollections => {
                     let include = Include { include: true };
                     let named = vec![Named {
-                        name: "public-collections",
+                        name:   "public-collections",
                         params: include,
                     }];
                     Some(named)
@@ -128,14 +121,10 @@ pub(crate) mod internal {
 
             let filter = Filter {
                 filenames: s.filenames,
-                tags: s.tags,
+                tags:      s.tags,
             };
             let query = Query { text: s.fulltext };
-            let params = Params {
-                query,
-                filter,
-                named,
-            };
+            let params = Params { query, filter, named };
 
             Search {
                 action: "search",
@@ -149,48 +138,48 @@ pub(crate) mod internal {
 pub struct SearchResult {
     #[serde(default)]
     pub documents: Vec<Document>,
-    pub hits: usize,
+    pub hits:      usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Document {
-    pub author: ID,
+    pub author:            ID,
     // collections
-    pub comments: usize,
+    pub comments:          usize,
     #[serde(rename = "document-date")]
-    pub document_date: DateTime<FixedOffset>,
+    pub document_date:     DateTime<FixedOffset>,
     #[serde(rename = "extended-metadata")]
     pub extended_metadata: serde_json::Value,
-    pub filename: String,
-    pub hash: String,
-    pub id: ID,
+    pub filename:          String,
+    pub hash:              String,
+    pub id:                ID,
     #[serde(
         rename = "mimetype",
         serialize_with = "serialize::mime_type",
         deserialize_with = "deserialize::mime_type"
     )]
-    pub mime_type: mime::Mime,
-    pub owner: ID,
-    pub pages: Option<usize>,
-    pub representations: Representations,
-    pub score: Option<f64>,
-    pub title: String,
+    pub mime_type:         mime::Mime,
+    pub owner:             ID,
+    pub pages:             Option<usize>,
+    pub representations:   Representations,
+    pub score:             Option<f64>,
+    pub title:             String,
     #[serde(rename = "upload-date")]
-    pub upload_date: DateTime<FixedOffset>,
-    pub uploader: ID,
+    pub upload_date:       DateTime<FixedOffset>,
+    pub uploader:          ID,
     // users
-    pub version: usize,
+    pub version:           usize,
     #[serde(rename = "version-date")]
-    pub version_date: DateTime<FixedOffset>,
+    pub version_date:      DateTime<FixedOffset>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Representations {
-    pub pdf: String,
+    pub pdf:      String,
     pub fulltext: String,
-    pub jpg: String,
-    pub png: String,
-    pub mp4: String,
+    pub jpg:      String,
+    pub png:      String,
+    pub mp4:      String,
 }
 
 impl fmt::Display for Representations {
@@ -216,10 +205,7 @@ impl fmt::Display for Representations {
     }
 }
 
-pub fn search_documents(
-    authorized_client: &AuthorizedClient,
-    search: Search,
-) -> Result<SearchResult> {
+pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) -> Result<SearchResult> {
     let url = format!("https://api.{}/v2/documents", authorized_client.base_url);
 
     let internal_search = internal::Search::from_search(search);

@@ -1,7 +1,8 @@
 use centerdevice::{
     client::auth::{Code, CodeProvider},
     errors::Result,
-    Client, ClientCredentials,
+    Client,
+    ClientCredentials,
 };
 
 use reqwest::IntoUrl;
@@ -16,7 +17,10 @@ impl CodeProvider for MyCodeProvider {
     fn get_code<T: IntoUrl>(&self, auth_url: T) -> Result<Code> {
         let auth_url = auth_url.into_url().expect("Failed to parse auth url");
 
-        println!("Please authenticate at the following URL, wait for the redirect, enter the code into the terminal, and then press return ...");
+        println!(
+            "Please authenticate at the following URL, wait for the redirect, enter the code into the terminal, and \
+             then press return ..."
+        );
         println!("\n\t{}\n", auth_url);
         print!("Authentication code: ");
         let _ = std::io::stdout().flush();

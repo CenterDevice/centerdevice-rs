@@ -1,6 +1,4 @@
-use centerdevice::{
-    client::download::Download, CenterDevice, Client, ClientCredentials, Token, WithProgress,
-};
+use centerdevice::{client::download::Download, CenterDevice, Client, ClientCredentials, Token, WithProgress};
 
 use std::{
     env,
@@ -9,25 +7,23 @@ use std::{
 };
 
 pub struct Progress {
-    amount: usize,
-    interval: usize,
+    amount:           usize,
+    interval:         usize,
     interval_counter: usize,
 }
 
 impl Progress {
     fn new() -> Self {
         Progress {
-            amount: 0,
-            interval: 0,
+            amount:           0,
+            interval:         0,
             interval_counter: 0,
         }
     }
 }
 
 impl WithProgress for Progress {
-    fn setup(&mut self, size: usize) {
-        self.interval = size / 10;
-    }
+    fn setup(&mut self, size: usize) { self.interval = size / 10; }
 
     fn progress(&mut self, amount: usize) {
         self.amount += amount;

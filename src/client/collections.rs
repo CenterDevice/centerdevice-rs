@@ -13,24 +13,22 @@ use std::string::ToString;
 #[derive(Serialize, Debug)]
 pub struct CollectionsQuery<'a> {
     include_public: bool,
-    name: Option<&'a str>,
-    ids: Option<Vec<&'a str>>,
+    name:           Option<&'a str>,
+    ids:            Option<Vec<&'a str>>,
 }
 
 impl<'a> Default for CollectionsQuery<'a> {
     fn default() -> Self {
         CollectionsQuery {
             include_public: false,
-            name: None,
-            ids: None,
+            name:           None,
+            ids:            None,
         }
     }
 }
 
 impl<'a> CollectionsQuery<'a> {
-    pub fn new() -> Self {
-        Default::default()
-    }
+    pub fn new() -> Self { Default::default() }
 
     pub fn include_public(self) -> CollectionsQuery<'a> {
         CollectionsQuery {
@@ -46,12 +44,7 @@ impl<'a> CollectionsQuery<'a> {
         }
     }
 
-    pub fn ids(self, ids: Vec<&'a str>) -> CollectionsQuery<'a> {
-        CollectionsQuery {
-            ids: Some(ids),
-            ..self
-        }
-    }
+    pub fn ids(self, ids: Vec<&'a str>) -> CollectionsQuery<'a> { CollectionsQuery { ids: Some(ids), ..self } }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -69,15 +62,15 @@ impl Default for CollectionsResult {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Collection {
-    pub id: String,
-    pub public: bool,
-    pub name: String,
-    pub owner: ID,
-    pub auditing: bool,
+    pub id:            String,
+    pub public:        bool,
+    pub name:          String,
+    pub owner:         ID,
+    pub auditing:      bool,
     #[serde(rename = "archived-date")]
     pub archived_date: Option<DateTime<FixedOffset>>,
     #[serde(rename = "has-folders")]
-    pub has_folders: Option<bool>,
+    pub has_folders:   Option<bool>,
 }
 
 pub fn search_collections(
@@ -113,12 +106,14 @@ pub fn search_collections(
     debug!("Response: '{:#?}'", response);
 
     let result = match response.status() {
-        StatusCode::OK => response.json().map_err(|e| {
-            e.context(ErrorKind::FailedToProcessHttpResponse(
-                response.status(),
-                "reading body".to_string(),
-            ))
-        })?,
+        StatusCode::OK => {
+            response.json().map_err(|e| {
+                e.context(ErrorKind::FailedToProcessHttpResponse(
+                    response.status(),
+                    "reading body".to_string(),
+                ))
+            })?
+        }
         StatusCode::NO_CONTENT => CollectionsResult::default(),
         code => {
             return Err(Error::from(ErrorKind::ApiCallFailed(

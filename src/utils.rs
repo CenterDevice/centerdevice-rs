@@ -1,10 +1,7 @@
 pub(crate) mod serialize {
     use serde::Serializer;
 
-    pub(crate) fn mime_type<S>(
-        mime_type: &mime::Mime,
-        serializer: S,
-    ) -> ::std::result::Result<S::Ok, S::Error>
+    pub(crate) fn mime_type<S>(mime_type: &mime::Mime, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
