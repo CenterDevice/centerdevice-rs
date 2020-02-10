@@ -6,9 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+## [0.4.0] - 2020-02-10
+
 ### Update Dependencies
 * ring > 0.16
 * reqwest > 0.10
+* Update minimum Rust version to 1.39
 
 ## [0.3.12] - 2019-22-22
 
@@ -123,7 +126,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.3.12...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/lukaspustina/ceres/compare/v0.3.12...0.4.0
 [0.3.12]: https://github.com/lukaspustina/ceres/compare/v0.3.10...0.3.12
 [0.3.10]: https://github.com/lukaspustina/ceres/compare/v0.3.9...0.3.10
 [0.3.9]: https://github.com/lukaspustina/ceres/compare/v0.3.8...0.3.9
