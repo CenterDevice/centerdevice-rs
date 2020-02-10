@@ -3,7 +3,7 @@ name: $(Build.sourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
 # Set global variables
 variables:
   crate_name: 'centerdevice-rs'
-  rust_minimum_version: 1.36.0
+  rust_minimum_version: 1.37.0
   # cf. https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
   macos_image_name: 'macOS-latest'
   linux_image_name: 'ubuntu-18.04'
