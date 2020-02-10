@@ -27,7 +27,9 @@ path = "src/lib.rs"
 chrono = { version = "0.4", features = ["serde"] }
 failure = "0.1"
 hex = "0.3"
-hyper = "0.10"
+# Necessary for hyper::header::* compatible with mime_multifrom; only this version works
+hyper_old = { version = "0.10", default-features = false, package = "hyper" }
+hyperx = "1"
 log = "0.4"
 mime = "0.2"
 mime_guess = "1.8"

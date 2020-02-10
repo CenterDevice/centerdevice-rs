@@ -134,18 +134,16 @@ fn do_download<T: WithProgress + ?Sized>(
 fn get_filename(response: &Response) -> Result<String> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10
     // headers and mime 0.2
-    use hyper::header::{ContentDisposition, DispositionParam, Header};
+    use hyperx::header::{ContentDisposition, DispositionParam, Header};
     use std::str;
 
     let status_code = response.status();
 
-    let header: Vec<_> = response
+    let header = response
         .headers()
         .get(header::CONTENT_DISPOSITION)
-        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?
-        .as_bytes()
-        .to_vec();
-    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&[header]).map_err(|e| {
+        .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?;
+    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&header).map_err(|e| {
         e.context(ErrorKind::FailedToProcessHttpResponse(
             status_code,
             "parsing content disposition header".to_string(),

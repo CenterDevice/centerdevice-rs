@@ -179,7 +179,8 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
 fn create_multipart(metadata: &DocumentMetadata, upload: &Upload) -> Result<Vec<Node>> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10
     // headers and mime 0.2
-    use hyper::header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers};
+    use hyper_old::header::Headers;
+    use hyper_old::header::{ContentDisposition, ContentType, DispositionParam, DispositionType};
 
     let mut nodes: Vec<Node> = Vec::with_capacity(2);
 

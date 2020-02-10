@@ -10,7 +10,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 * ring > 0.16
 * reqwest > 0.10
 
-
 ## [0.3.12] - 2019-22-22
 
 ### Add
