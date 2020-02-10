@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 
 ### Update Dependencies
-* ring > 0.19
+* ring > 0.16
+* reqwest > 0.10
 
 
 ## [0.3.12] - 2019-22-22

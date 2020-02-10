@@ -23,12 +23,12 @@ use crate::{
 };
 
 use failure::Fail;
-use reqwest::{self, IntoUrl, Response, StatusCode};
+use reqwest::{self, blocking::Response, IntoUrl, StatusCode};
 
 pub struct UnauthorizedClient<'a> {
     pub(crate) base_url:           &'a str,
     pub(crate) client_credentials: ClientCredentials<'a>,
-    pub(crate) http_client:        reqwest::Client,
+    pub(crate) http_client:        reqwest::blocking::Client,
 }
 
 impl<'a, 'b: 'a> UnauthorizedClient<'b> {
@@ -60,7 +60,7 @@ pub struct AuthorizedClient<'a> {
     pub(crate) base_url:           &'a str,
     pub(crate) client_credentials: ClientCredentials<'a>,
     pub(crate) token:              Token,
-    pub(crate) http_client:        reqwest::Client,
+    pub(crate) http_client:        reqwest::blocking::Client,
 }
 
 impl<'a> AuthorizedClient<'a> {
@@ -100,17 +100,17 @@ pub(crate) trait GeneralErrHandler {
 impl GeneralErrHandler for Response {
     type T = Response;
 
-    fn general_err_handler(mut self, expected_states: &[StatusCode]) -> Result<Self> {
+    fn general_err_handler(self, expected_states: &[StatusCode]) -> Result<Self> {
         match self.status() {
             code if expected_states.contains(&code) => Ok(self),
             code @ StatusCode::UNAUTHORIZED => Err(Error::from(ErrorKind::ApiCallFailedInvalidToken(code))),
             code @ StatusCode::TOO_MANY_REQUESTS => Err(Error::from(ErrorKind::ApiCallFailedTooManyRequests(code))),
-            _ => Err(handle_error(&mut self)),
+            _ => Err(handle_error(self)),
         }
     }
 }
 
-fn handle_error(response: &mut Response) -> Error {
+fn handle_error(response: Response) -> Error {
     let status_code = response.status();
 
     match response.text() {

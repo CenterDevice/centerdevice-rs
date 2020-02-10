@@ -6,7 +6,7 @@ use crate::{
 
 use failure::Fail;
 use log::debug;
-use reqwest::{header, Response, StatusCode};
+use reqwest::{blocking::Response, header, StatusCode};
 use std::{
     fs::File,
     io::{BufWriter, Write},
