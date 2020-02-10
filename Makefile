@@ -29,7 +29,6 @@ release-bump:
 
 publish:
 	git push && git push --tags
-	cargo publish --allow-dirty
 
 clippy:
 	cargo clippy --all --all-targets -- -D warnings $$(source ".clippy.args")
