@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ## [Unreleased]
 
 
+### Update Dependencies
+* ring > 0.19
+
+
 ## [0.3.12] - 2019-22-22
 
 ### Add
