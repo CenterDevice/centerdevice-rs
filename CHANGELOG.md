@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+### Change
+* Disable native-tls for reqwest; only use rust-tls
 
 ## [0.4.0] - 2020-02-10
 
