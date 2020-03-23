@@ -23,12 +23,12 @@ use crate::{
 };
 
 use failure::Fail;
-use reqwest::{self, blocking::Response, IntoUrl, StatusCode};
+use reqwest::{self, Response, IntoUrl, StatusCode};
 
 pub struct UnauthorizedClient<'a> {
     pub(crate) base_url:           &'a str,
     pub(crate) client_credentials: ClientCredentials<'a>,
-    pub(crate) http_client:        reqwest::blocking::Client,
+    pub(crate) http_client:        reqwest::Client,
 }
 
 impl<'a, 'b: 'a> UnauthorizedClient<'b> {
@@ -60,7 +60,7 @@ pub struct AuthorizedClient<'a> {
     pub(crate) base_url:           &'a str,
     pub(crate) client_credentials: ClientCredentials<'a>,
     pub(crate) token:              Token,
-    pub(crate) http_client:        reqwest::blocking::Client,
+    pub(crate) http_client:        reqwest::Client,
 }
 
 impl<'a> AuthorizedClient<'a> {
@@ -110,7 +110,7 @@ impl GeneralErrHandler for Response {
     }
 }
 
-fn handle_error(response: Response) -> Error {
+fn handle_error(mut response: Response) -> Error {
     let status_code = response.status();
 
     match response.text() {

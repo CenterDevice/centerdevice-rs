@@ -8,7 +8,7 @@ use hex;
 use log::debug;
 use mime::*;
 use mime_multipart::{write_multipart, FilePart, Node, Part};
-use reqwest::{blocking::Response, header, StatusCode};
+use reqwest::{Response, header, StatusCode};
 use serde::{self, Deserialize};
 use std::{borrow::Cow, path::Path};
 
@@ -159,7 +159,7 @@ pub fn upload_file(authorized_client: &AuthorizedClient, upload: Upload) -> Resu
         .body(body);
     debug!("Request: '{:#?}'", request);
 
-    let response: Response = request
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(&[StatusCode::CREATED])?;

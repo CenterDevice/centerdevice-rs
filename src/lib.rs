@@ -37,7 +37,7 @@ impl Client {
         UnauthorizedClient {
             base_url,
             client_credentials,
-            http_client: reqwest::blocking::Client::new(),
+            http_client: reqwest::Client::new(),
         }
     }
 
@@ -50,7 +50,7 @@ impl Client {
             base_url,
             client_credentials,
             token,
-            http_client: reqwest::blocking::Client::new(),
+            http_client: reqwest::Client::new(),
         }
     }
 }

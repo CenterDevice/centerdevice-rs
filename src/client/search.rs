@@ -7,7 +7,7 @@ use crate::{
 use chrono::{DateTime, FixedOffset};
 use failure::Fail;
 use log::debug;
-use reqwest::{blocking::Response, StatusCode};
+use reqwest::{Response, StatusCode};
 use serde::{self, Deserialize, Serialize};
 use std::fmt;
 
@@ -217,7 +217,7 @@ pub fn search_documents(authorized_client: &AuthorizedClient, search: Search) ->
         .json(&internal_search);
     debug!("Request: '{:#?}'", request);
 
-    let response: Response = request
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(&[StatusCode::OK])?;

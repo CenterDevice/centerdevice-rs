@@ -6,7 +6,7 @@ use crate::{
 
 use failure::Fail;
 use log::debug;
-use reqwest::{blocking::Response, header, StatusCode};
+use reqwest::{Response, header, StatusCode};
 use std::{
     fs::File,
     io::{BufWriter, Write},
@@ -134,7 +134,7 @@ fn do_download<T: WithProgress + ?Sized>(
 fn get_filename(response: &Response) -> Result<String> {
     // TODO: Upgrade to another version of mime_multifrom or replace because it uses hyper 0.10
     // headers and mime 0.2
-    use hyperx::header::{ContentDisposition, DispositionParam, Header};
+    use hyper_old::header::{ContentDisposition, DispositionParam, Header};
     use std::str;
 
     let status_code = response.status();
@@ -143,7 +143,8 @@ fn get_filename(response: &Response) -> Result<String> {
         .headers()
         .get(header::CONTENT_DISPOSITION)
         .ok_or_else(|| ErrorKind::FailedToProcessHttpResponse(status_code, "content disposition header".to_string()))?;
-    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&header).map_err(|e| {
+    let header_bytes = header.as_bytes().to_vec();
+    let content_disposition: ContentDisposition = ContentDisposition::parse_header(&[header_bytes]).map_err(|e| {
         e.context(ErrorKind::FailedToProcessHttpResponse(
             status_code,
             "parsing content disposition header".to_string(),

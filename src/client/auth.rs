@@ -6,7 +6,7 @@ use crate::{
 
 use failure::Fail;
 use log::debug;
-use reqwest::{blocking::Response, StatusCode, Url};
+use reqwest::{Response, StatusCode, Url};
 use serde::Deserialize;
 
 // Export reqwest's IntoUrl, because our public API (CodeProvider) requires users to implement this.
@@ -95,7 +95,7 @@ pub fn exchange_code_for_token(
         ("code", code.code.as_str()),
     ];
 
-    let http_client = reqwest::blocking::Client::new();
+    let http_client = reqwest::Client::new();
 
     let request = http_client
         .post(&token_endpoint)
@@ -103,7 +103,7 @@ pub fn exchange_code_for_token(
         .form(&params);
     debug!("Request: '{:#?}'", request);
 
-    let response: Response = request
+    let mut response: Response = request
         .send()
         .map_err(|e| e.context(ErrorKind::HttpRequestFailed))?
         .general_err_handler(&[StatusCode::OK])?;
@@ -127,7 +127,7 @@ pub fn refresh_access_token(authorized_client: &AuthorizedClient) -> Result<Toke
         ("refresh_token", &authorized_client.token.refresh_token),
     ];
 
-    let response = authorized_client
+    let mut response = authorized_client
         .http_client
         .post(&url)
         .basic_auth(
