@@ -1,4 +1,4 @@
-use centerdevice::{client::upload::Upload, CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::upload::Upload, CenterDevice, ClientBuilder, ClientCredentials, Token};
 
 use mime_guess;
 use std::{env, path::Path};
@@ -25,7 +25,7 @@ fn main() {
 
     let client_credentials = ClientCredentials::new(&client_id, &client_secret);
     let token = Token::new(access_token, refresh_token);
-    let client = Client::with_token("centerdevice.de", client_credentials, token);
+    let client = ClientBuilder::new("centerdevice.de", client_credentials).build_with_token(token);
 
     let file_path = "examples/upload.rs";
     let path = Path::new(file_path);

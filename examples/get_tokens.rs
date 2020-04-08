@@ -1,7 +1,7 @@
 use centerdevice::{
     client::auth::{Code, CodeProvider},
     errors::Result,
-    Client,
+    ClientBuilder,
     ClientCredentials,
 };
 
@@ -51,7 +51,8 @@ fn main() {
     let client_credentials = ClientCredentials::new(&client_id, &client_secret);
     let code_provider = MyCodeProvider {};
 
-    let client = Client::new("centerdevice.de", client_credentials)
+    let client = ClientBuilder::new("centerdevice.de", client_credentials)
+        .build()
         .authorize_with_code_flow(&redirect_uri, &code_provider)
         .expect("API call failed.");
 
