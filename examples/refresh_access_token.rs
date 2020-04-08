@@ -1,4 +1,4 @@
-use centerdevice::{CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{CenterDevice, ClientBuilder, ClientCredentials, Token};
 
 use std::env;
 
@@ -23,8 +23,7 @@ fn main() {
     let client_credentials = ClientCredentials::new(&client_id, &client_secret);
     let token = Token::new(access_token, refresh_token);
 
-    let client = Client::with_token("centerdevice.de", client_credentials, token);
-
+    let client = ClientBuilder::new("centerdevice.de", client_credentials).build_with_token(token);
     let token = client.refresh_access_token().expect("Search failed.");
 
     println!("Refreshed Access Token: '{:#?}'", token);

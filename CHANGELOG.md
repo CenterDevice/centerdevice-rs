@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-04-08
+
+### Breaking Change
+* `Client` changed to allow for externally defined, reqwest based HTTP clients
+
+### Add
+* `ClientBuilder` added that supports adding an self-maintained Root CA -- cf. `examples/root_ca.rs`.
 
 ## [0.4.1] - 2020-03-11
 
@@ -131,7 +138,8 @@ Initial release supports
 * delete
 * download
 
-[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/lukaspustina/ceres/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/lukaspustina/ceres/compare/v0.4.1...0.5.0
 [0.4.1]: https://github.com/lukaspustina/ceres/compare/v0.4.0...0.4.1
 [0.4.0]: https://github.com/lukaspustina/ceres/compare/v0.3.12...0.4.0
 [0.3.12]: https://github.com/lukaspustina/ceres/compare/v0.3.10...0.3.12

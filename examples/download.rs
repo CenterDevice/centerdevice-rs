@@ -1,4 +1,4 @@
-use centerdevice::{client::download::Download, CenterDevice, Client, ClientCredentials, Token};
+use centerdevice::{client::download::Download, CenterDevice, ClientBuilder, ClientCredentials, Token};
 
 use std::{env, path::Path};
 
@@ -26,7 +26,7 @@ fn main() {
 
     let client_credentials = ClientCredentials::new(&client_id, &client_secret);
     let token = Token::new(access_token, refresh_token);
-    let client = Client::with_token("centerdevice.de", client_credentials, token);
+    let client = ClientBuilder::new("centerdevice.de", client_credentials).build_with_token(token);
 
     let download_dir_path = "/tmp";
     let path = Path::new(download_dir_path);
