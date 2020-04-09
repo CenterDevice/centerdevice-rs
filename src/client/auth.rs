@@ -2,6 +2,7 @@ use crate::{
     client::{AuthorizedClient, GeneralErrHandler},
     errors::{ErrorKind, Result},
     ClientCredentials,
+    HttpClient,
 };
 
 use failure::Fail;
@@ -57,9 +58,10 @@ pub fn authorization_code_flow<T: CodeProvider>(
     base_url: &str,
     redirect_uri: &Url,
     code_provider: &T,
+    http_client: &HttpClient,
 ) -> Result<Token> {
-    let code = get_code(client_credentials, &base_url, redirect_uri, code_provider)?;
-    let token = exchange_code_for_token(&code, client_credentials, base_url, redirect_uri)?;
+    let code = get_code(client_credentials, base_url, redirect_uri, code_provider)?;
+    let token = exchange_code_for_token(&code, client_credentials, base_url, redirect_uri, http_client)?;
 
     Ok(token)
 }
@@ -87,6 +89,7 @@ pub fn exchange_code_for_token(
     client_credentials: &ClientCredentials,
     base_url: &str,
     redirect_uri: &Url,
+    http_client: &HttpClient,
 ) -> Result<Token> {
     let token_endpoint = format!("https://auth.{}/token", base_url);
     let params = [
@@ -94,8 +97,6 @@ pub fn exchange_code_for_token(
         ("redirect_uri", redirect_uri.as_str()),
         ("code", code.code.as_str()),
     ];
-
-    let http_client = reqwest::Client::new();
 
     let request = http_client
         .post(&token_endpoint)

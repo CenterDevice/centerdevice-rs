@@ -42,8 +42,13 @@ impl<'a, 'b: 'a> UnauthorizedClient<'b> {
             .into_url()
             .map_err(|e| e.context(ErrorKind::FailedToPrepareHttpRequest(redirect_uri.to_string())))?;
 
-        let token =
-            auth::authorization_code_flow(&self.client_credentials, self.base_url, &redirect_url, code_provider)?;
+        let token = auth::authorization_code_flow(
+            &self.client_credentials,
+            self.base_url,
+            &redirect_url,
+            code_provider,
+            &self.http_client,
+        )?;
 
         let authorized_client = AuthorizedClient {
             base_url: self.base_url,
