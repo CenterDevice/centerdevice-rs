@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ## [Unreleased]
 
+## [0.5.1] - 2020-04-09
+
+### Fix
+* `get_token` call used to use `reqwest` client without adding a Root CA
+
 ## [0.5.0] - 2020-04-08
 
 ### Breaking Change
